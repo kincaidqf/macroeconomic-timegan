@@ -16,7 +16,15 @@ def restructure_file(df):
         df = df.rename(columns=rename_map)
         print(f"[data_clean] Renamed year columns")
 
-    print(df.head())
+    # Reshape from wide to long format
+    id_vars = ["Country Name", "Country Code", "Series Name"]
+    year_cols = [col for col in df.columns if col.isdigit()]
+    df_long = df.melt(id_vars=id_vars, 
+                      value_vars=year_cols, 
+                      var_name="year",
+                      value_name="value")
+
+    print(df_long.head(15))
     return
 
 
@@ -42,6 +50,8 @@ def main():
     print(df.head())
 
     restructure_file(df)
+
+
 
 if __name__ == "__main__":
     main()
