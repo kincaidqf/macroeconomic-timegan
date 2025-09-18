@@ -11,6 +11,8 @@ ROW_TO_HEADER = {
     r"population.*growth": "Population Growth",
 }
 
+TARGET_HEADERS = ["Year", "Inflation", "Unemployment", "GDP Growth", "GDP per capita", "Population Growth"]
+
 def map_series_to_header(series_name: str) -> str | None:
     if not isinstance(series_name, str):
         return None
@@ -19,6 +21,7 @@ def map_series_to_header(series_name: str) -> str | None:
         if re.search(row, series):
             return header
     return None
+
 
 def restructure_file(df):
     # Drop unnecessary columns
@@ -75,6 +78,41 @@ def restructure_file(df):
     return panel
 
 
+def write_country_csvs(panel: pd.DataFrame, outdir: Path, n_countries: int = 10):
+    # Column check
+    missing = [col for col in TARGET_HEADERS if col not in panel.columns]
+    if missing:
+        raise ValueError(f"Missing columns in panel: {missing}")  
+    
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    # Sort by countries
+    countries = (
+        panel[["Country Name", "Country Code"]]
+        .drop_duplicates()
+        .sort_values(["Country Name", "Country Code"], na_position="last")
+        .reset_index(drop=True)
+    )
+
+    if len(countries) < n_countries:
+        print(f"[data_clean] Only {len(countries)} countries found, writing all")
+    if len(countries) > n_countries:
+        countries = countries.iloc[:n_countries, :]
+    
+    results = []
+    for i, row in countries.iterrows():
+        name = row["Country Name"]
+        code = row["Country Code"]
+        one = panel[(panel["Country Name"] == name) & (panel["Country Code"] == code)].copy()
+
+        one = one[TARGET_HEADERS].sort_values("Year")
+        fname = outdir / f"Country{i+1}.csv"
+        one.to_csv(fname, index=False)
+        results.append((fname.name, len(one)))
+    
+    return results
+
+
 def main():
     # Argument parsing set up to run from terminal with different inputs if desired
     ap = argparse.ArgumentParser()
@@ -96,10 +134,15 @@ def main():
     print(f"[data_clean] {in_path} -> {df.shape[0]} rows, {df.shape[1]} cols")
     print(df.head())
 
-    df_long = restructure_file(df)
+    cleaned_df = restructure_file(df)
 
-    
+    export_summary = write_country_csvs(cleaned_df, outdir=Path(args.outdir), n_countries=10)
 
+    total_rows = sum(n for _, n in export_summary)
+    print("[data_clean] Wrote the following files:")
+    for fname, rc in export_summary:
+        print(f"  {fname}: {rc} rows")
+    print(f"[data_clean] Total rows written: {total_rows}")
 
 
 if __name__ == "__main__":
