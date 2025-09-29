@@ -175,3 +175,30 @@ def prepare_windows(data_dir: Path,
 
     return train_scaled, val_scaled, test_scaled, (minv, rangev), summary
 
+
+def main():
+    # Argument parsing set up to run from terminal with different inputs if desired
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--data_dir", default="data/clean",
+                    help="Directory with Country*.csv files (default: data/clean)")
+    ap.add_argument("--L", type=int, default=24,
+                    help="Window length L (default: 24)")
+    ap.add_argument("--stride", type=int, default=1,
+                    help="Stride for sliding windows (default: 1)")
+    ap.add_argument("--val_countries", nargs="+", default=["Country7"],
+                    help="List of countries for validation (default: Country7)")
+    ap.add_argument("--test_countries", nargs="+", default=["Country8", "Country9"],
+                    help="List of countries for testing (default: Country8 Country9)")
+    args = ap.parse_args()
+
+    train_scaled, val_scaled, test_scaled, (minv, rangev), summary = prepare_windows(
+        data_dir=Path(args.data_dir),
+        L=args.L,
+        stride=args.stride,
+        val_countries=args.val_countries,
+        test_countries=args.test_countries
+    )
+
+    
+
+
