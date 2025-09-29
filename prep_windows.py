@@ -199,6 +199,23 @@ def main():
         test_countries=args.test_countries
     )
 
-    
+    # Compact human-readable summary
+    print("=== Window Prep Summary ===")
+    print("Countries:")
+    for split in ["train", "val", "test"]:
+        print(f"  {split:>5}: {summary['countries'][split]}")
+    print("Counts:")
+    for k, v in summary["counts"].items():
+        print(f"  {k:>15}: {v}")
+    print("Shapes:")
+    for k, v in summary["shapes"].items():
+        print(f"  {k:>22}: {v}")
+    print("Scaler (minv/maxv) per feature (FEATURES order):")
+    print("  FEATURES:", FEATURES)
+    print("  minv    :", np.round(minv, 4))
+    print("  maxv    :", np.round(summary['scaler']['maxv'], 4))
 
+
+if __name__ == "__main__":
+    main()
 
