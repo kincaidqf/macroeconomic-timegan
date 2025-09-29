@@ -112,5 +112,66 @@ def apply_minmax(windows: List[np.ndarray], minv: np.ndarray, rangev: np.ndarray
 
 def prepare_windows(data_dir: Path,
                     L: int = 24,
-                    )
+                    stride: int = 1,
+                    val_countries: List[str] = None,
+                    test_countries: List[str] = None):
+    """
+    - Load Country csvs from data folder
+    - Split by country
+    - Generate sliding windows for each country
+    - Fit Min-Max scaler on TRAIN only
+    returns scaled windows and scalar params
+    """
+
+    val_countries = val_countries or ["Country7"]
+    test_countries = test_countries or ["Country8", "Country9"]
+
+    all_data = load_country_series(data_dir)
+    all_countries = sorted(all_data.keys())
+
+    train_list, val_list, test_list = split_by_country(all_countries, val_countries, test_countries)
+
+    # Build windows
+    train_windows: List[np.ndarray] = []
+    for country in train_list:
+        train_windows += df_to_windows(all_data[country], L=L, stride=stride)
+    val_windows: List[np.ndarray] = []
+    for country in val_list:
+        val_windows += df_to_windows(all_data[country], L=L, stride=stride)
+    test_windows: List[np.ndarray] = []
+    for country in test_list:
+        test_windows += df_to_windows(all_data[country], L=L, stride=stride)
+
+    # Fit scalar on TRAIN only
+    minv, maxv, rangev = fit_minmax(train_windows)
+
+    # Scale all sets
+    train_scaled = apply_minmax(train_windows, minv, rangev)
+    val_scaled = apply_minmax(val_windows, minv, rangev)
+    test_scaled = apply_minmax(test_windows, minv, rangev)
+
+    summary = {
+        "countries": {
+            "train": train_list,
+            "val":   val_list,
+            "test":  test_list,
+        },
+        "counts": {
+            "train_windows": len(train_scaled),
+            "val_windows":   len(val_scaled),
+            "test_windows":  len(test_scaled),
+        },
+        "shapes": {
+            "example_window_shape": tuple(train_scaled[0].shape) if train_scaled else None,
+            "feature_count": len(FEATURES),
+            "window_length": L,
+            "stride": stride,
+        },
+        "scaler": {
+            "minv": minv.tolist(),
+            "maxv": maxv.tolist(),
+        }
+    }
+
+    return train_scaled, val_scaled, test_scaled, (minv, rangev), summary
 
