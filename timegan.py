@@ -9,6 +9,14 @@ from utils import (
 )
 
 tf.compat.v1.disable_eager_execution() # Use TF1-style execution
+"""
+Original TimeGAN implementation used TF1-style sessions.
+- Allos for static graph definition of the model with placeholders for inputs
+- Graph is run inside a session which doesn't execute until it is fed data
+- Easier to match original implementation and debug issues
+
+TF2 eager execution instantly runs operations, would be difficult to adapt og implementation to TF2
+"""
 
 def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Placeholder for TimeGAN implementation
