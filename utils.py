@@ -13,7 +13,12 @@ def set_random_seed(seed: int = 42):
     tf.compat.v1.set_random_seed(seed)
 
 
-# Data shape helper functions
+"""
+Looks at training set to infer sequence length and feature dimension
+- Just need to keep track of the sequence length (L) and feature dimension (D)
+- Assumes all windows have the same length and feature dimension
+- Needed for declaring X_ph
+"""
 def infer_dims(train_set: List[np.ndarray]) -> Tuple[int, int, int]:
     """
     Infer dimensions from the first window
@@ -23,6 +28,12 @@ def infer_dims(train_set: List[np.ndarray]) -> Tuple[int, int, int]:
     return int(L), int(D)
 
 
+"""
+Training is done in mini-batches of size batch_size
+- Randomly sample batch_size windows from the training set
+- Method called stochastic gradient descent
+- Feeding whole dataset at once isn't memory efficient
+"""
 def sample_batch(data: List[np.ndarray], batch_size: int) -> np.ndarray:
     """
     Sample a random batch of windows from data (n x L x D) where n = batch_size
@@ -32,6 +43,14 @@ def sample_batch(data: List[np.ndarray], batch_size: int) -> np.ndarray:
     return np.stack(batch, axis=0).astype(np.float32)
 
 
+""" 
+TimeGAN generator doesn't take any real data, just noise sequences
+- Sample random noise sequences of shape (batch_size, L, z_dim)
+- z_dim is a hyperparameter, controls the dimensionality of the noise space
+- Typically set z_dim = D, the feature dimension, can be tuned
+- Generator is fed temporal noise series of L steps (which this function outputs)
+    - Learns to map random sequences into realistic sequences
+"""
 def sample_noise(batch_size: int, seq_len: int, z_dim: int) -> np.ndarray:
     """
     Per-timestep Gaussian noise (batch, seq_len, z_dim)
