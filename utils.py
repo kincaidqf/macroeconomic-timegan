@@ -119,6 +119,16 @@ def build_placeholders(L: int, D: int, z_dim: int):
     return X, Z
 
 
+"""
+Creates an Adam optimizer with given learning rate
+- Adam is an adaptive learning rate optimization algorithm
+- Basically, a constant learning rate has some limitations because it isn't flexible/adapted to the data
+- Adam takes momentum (moving average of past gradients) into account when updating weights
+- Also takes root mean square (RMS) of past gradients into account for adjustments
+- Stabalizes learning process while adapting learning rates to dataset
+
+Adaptive learning rates helpful where features initially measured on very different scales (GDP vs inflation)
+"""
 def make_optimizer(lr: float = 1e-3):
     return tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
 
