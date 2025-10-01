@@ -58,7 +58,15 @@ def sample_noise(batch_size: int, seq_len: int, z_dim: int) -> np.ndarray:
     return np.random.normal(0.0, 1.0, size=(batch_size, seq_len, z_dim)).astype(np.float32)
 
 
-# RNN helper functions
+"""
+Returns one RNN cell
+Each recurrent cell maintains a hidden state that is updated at each time step
+Hidden step at time t is a function of the input at time t and the hidden state at time t-1
+- Initial RNN cells struggled to remember long sequences
+- LSTM and GRU are more complex cells that help with long-term dependencies
+- Adds gating mechanisms (update, reset, forget) to control information flow
+- Handled by tensorflow libraries, this function just for specifying which cell we want to use
+"""
 def make_rnn_cell(hidden_dim: int, module: str = "gru"):
     if module.lower() == "lstm":
         return tf.compat.v1.nn.rnn_cell.LSTMCell(hidden_dim, activation=tf.nn.tanh)
@@ -66,12 +74,24 @@ def make_rnn_cell(hidden_dim: int, module: str = "gru"):
         return tf.compat.v1.nn.rnn_cell.GRUCell(hidden_dim, activation=tf.nn.tanh)
     
 
+"""
+Creates a stack of RNN layers
+Each layers output becomes the input to the next layer
+- Defaults to 2 layers
+- More layers can capture more complex patterns, but increases computational cost and risk of overfitting
+- Handled by tensorflow libraries, this function just for specifying which cell we want to use
+"""
 def stacked_rnn(hidden_dim: int, num_layers: int, module: str):
     cells = [make_rnn_cell(hidden_dim, module) for _ in range(num_layers)]
     return tf.compat.v1.nn.rnn_cell.MultiRNNCell(cells)
 
 
-# Initializers
+"""
+Xavier (also called Glorot) initialization
+Creates a random weight matrix with values drawn from a normal distribution
+- If weights are too big, activations can explode
+- If weights are too small, activations can vanish
+"""
 def xavier_init(shape):
     """
     Glorot-style normal initializer for dense layers
@@ -80,6 +100,14 @@ def xavier_init(shape):
     return tf.compat.v1.random_normal(shape=shape, stddev=std)
 
 
+"""
+Defines placeholders for real data in the model
+- Will be fed real data during training
+- X: real sequences (training data)
+- Z: random noise sequences (input to generator, created by sample_noise)
+- None: batch size can vary
+Before being run with data, the graph is static and needs to know the dimensions of the data its going to get
+"""
 def build_placeholders(L: int, D: int, z_dim: int):
     """
     Placeholders:
