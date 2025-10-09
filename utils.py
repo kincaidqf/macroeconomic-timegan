@@ -140,7 +140,7 @@ DEFAULT_PARAMS: Dict = {
     "hidden_dim": 24,
     "num_layers": 2,
     "module": "gru",            # 'gru' or 'lstm'
-    "iterations": 10000,
+    "iterations": 10000,        # default 10k like in original repository
     "batch_size": 64,
     "learning_rate": 1e-3,
     "gamma": 1.0,

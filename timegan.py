@@ -25,18 +25,30 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     if parameters:
         params.update(parameters)
 
+    # Length of each window (number of time steps) and feature dimension (number of features)
     seq_len, feature_dim = infer_dims(train_set)
+    # Number of units in each layer of the neural networks (length of hidden state vector, 24 in this case)
     hidden_dim = int(params["hidden_dim"])
+    # Count of layers in the neural networks
     num_layers = int(params["num_layers"])
+    # Type of RNN cell to use (gru or lstm)
     module = str(params["module"]).lower()
+    # Number of parameter update steps
     iterations = int(params["iterations"])
+    # Number of (L x D) windows in each batch
     batch_size = int(params["batch_size"])
+    # Learning rate, adaptive based on Adam optimizer
     lr = float(params["learning_rate"])
+    # Hyperparameter to balance weightin of supervised loss and unsupervised loss
+        # 1 = equal weighting, >1 = more weight on supervised loss, <1 = more weight on unsupervised loss
     gamma = float(params["gamma"])
+    # Latent space dimension, if None set to feature_dim
     z_dim = int(params["z_dim"] or feature_dim)
 
+    # Placeholders for real data (X) and random noise (Z)
     X_ph, Z_ph = build_placeholders(seq_len, feature_dim, z_dim)
 
+    # Learning rate optimizer
     adam = make_optimizer(lr)
 
     def embedder(X, T):
