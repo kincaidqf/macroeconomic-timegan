@@ -51,8 +51,34 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Learning rate optimizer
     adam = make_optimizer(lr)
 
-    def embedder(X, T):
-        return
+    def embedder(X):
+        # Don't need T because sliding windows all have the same length of seq_len
+
+        """
+        X: real sequences (batch, seq_len, feature_dim)
+        Returns H: embedded (latent) real sequences (batch, seq_len, hidden_dim)
+        """
+
+        with tf.compat.v1.variable_scope("embedder", reuse=tf.compat.v1.AUTO_REUSE):
+            # 1) Temporal encoder: stacked RNN over timesteps
+            cell = stacked_rnn(hidden_dim, num_layers, module)
+            # outputs: (batch, seq_len, hidden_dim)
+            outputs, _ = tf.compat.v1.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+
+            # 2) Per-timestep projection to latent space
+            # Flatten time+batch for one dense matmul then reshape back
+            flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
+
+            # Dense projection (hidden_dim -> hidden_dim) with Xavier init
+            W_e = tf.Variable(xavier_init([hidden_dim, hidden_dim]), name="W_e")
+            b_e = tf.Variable(tf.zeros([hidden_dim], dtype=tf.float32), name="b_e")
+
+            # Activation: sigmoid keeps H in [0,1] which is the same range as [0,1] scaled input data
+            h_flat = tf.nn.sigmoid(tf.matmul(flat, W_e) + b_e)  # (batch*seq_len, hidden_dim)
+
+            # Reshape back to sequence form
+            H = tf.reshape(h_flat, [-1, seq_len, hidden_dim])  #
+            return H
     
     def recovery(H, T):
         return
