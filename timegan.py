@@ -103,15 +103,14 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             # Reshape back to sequence form
             X_hat = tf.reshape(x_hat_flat, [-1, seq_len, feature_dim])  # (batch, seq_len, feature_dim)
             return X_hat
-
-        return
+        
     
-    def generator(Z, T):
+    def generator(Z):
         """
         Z: noise sequences (batch, L, z_dim)
         Returns H_tilde: generated latent sequences (batch, L, hidden_dim)
         """
-        with tf.compat.v1.variable_scope("geerator", reuse=tf.compat.v1.AUTO_REUSE):
+        with tf.compat.v1.variable_scope("generator", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Stacked RNN over timesteps
             g_cell = stacked_rnn(hidden_dim, num_layers, module)
             g_outputs, _ = tf.compat.v1.nn.dynamic_rnn(g_cell, Z, dtype=tf.float32)
@@ -131,11 +130,47 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             return H_tilde
 
     
-    def supervisor(H, T):
-        return
+    def supervisor(H):
+        """
+        H: latent sequences (from embedder)
+        Returns H_hat: supervised latent sequences (batch, seq_len, hidden_dim)
+        """
+
+        with tf.compat.v1.variable_scope("supervisor", reuse=tf.compat.v1.AUTO_REUSE):
+            # 1) Stacked RNN over timesteps
+            s_cell = stacked_rnn(hidden_dim, num_layers, module)
+            s_outputs, _ = tf.compat.v1.nn.dynamic_rnn(s_cell, H, dtype=tf.float32) # (batch, seq_len, hidden_dim)
+
+            # 2) Per-timestep projection to latent space
+            s_flat = tf.reshape(s_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
+
+            W_s = tf.Variable(xavier_init([hidden_dim, hidden_dim]), name="W_s")
+            b_s = tf.Variable(tf.zeros([hidden_dim], dtype=tf.float32), name="b_s")
+
+            hhat_flat = tf.nn.sigmoid(tf.matmul(s_flat, W_s) + b_s)  # (batch*seq_len, hidden_dim)
+            H_hat = tf.reshape(hhat_flat, [-1, seq_len, hidden_dim])  # (batch, seq_len, hidden_dim)
+            return H_hat
     
-    def discriminator(H, T):
-        return
+    def discriminator(H_in):
+        """
+        H_in: latent sequences (from embedder or generator)
+        Returns logits: shape (batch, 1)
+        """
+
+        with tf.compat.v1.variable_scope("discriminator", reuse=tf.compat.v1.AUTO_REUSE):
+            # 1) Stacked RNN over timesteps
+            d_cell = stacked_rnn(hidden_dim, num_layers, module)
+            d_outputs, _ = tf.compat.v1.nn.dynamic_rnn(d_cell, H_in, dtype=tf.float32)  # (batch, seq_len, hidden_dim)
+
+            # 2) Sequence summary: take last timestep's hidden state
+            last = d_outputs[:, -1, :]  # (batch, hidden_dim)
+
+            # 3) Linear head to single logit (used for stability instead of sigmoid)
+            W_d = tf.Variable(xavier_init([hidden_dim, 1]), name="W_d")
+            b_d = tf.Variable(tf.zeros([1], dtype=tf.float32), name="b_d")
+
+            logits = tf.matmul(last, W_d) + b_d  # (batch, 1)
+            return logits
     
     generated_data = list()
 
