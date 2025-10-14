@@ -80,7 +80,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             H = tf.reshape(h_flat, [-1, seq_len, hidden_dim])  #
             return H
     
-    def recovery(H, T):
+    def recovery(H):
         """
         H: latent sequences (from embedder) 
         Returns X_hat: reconstructed sequences from H (batch, L, feature_dim)
