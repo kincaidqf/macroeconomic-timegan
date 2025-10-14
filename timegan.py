@@ -107,7 +107,29 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         return
     
     def generator(Z, T):
-        return
+        """
+        Z: noise sequences (batch, L, z_dim)
+        Returns H_tilde: generated latent sequences (batch, L, hidden_dim)
+        """
+        with tf.compat.v1.variable_scope("geerator", reuse=tf.compat.v1.AUTO_REUSE):
+            # 1) Stacked RNN over timesteps
+            g_cell = stacked_rnn(hidden_dim, num_layers, module)
+            g_outputs, _ = tf.compat.v1.nn.dynamic_rnn(g_cell, Z, dtype=tf.float32)
+
+            # 2) Per-timestep projection to latent space
+            g_flat = tf.reshape(g_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
+
+            # Dense projection (hidden_dim -> hidden_dim) with Xavier init
+            W_g = tf.Variable(xavier_init([hidden_dim, hidden_dim]), name="W_g")
+            b_g = tf.Variable(tf.zeros([hidden_dim], dtype=tf.float32), name="b_g")
+
+            # Activation: sigmoid keeps H_tilde in [0,1] which is the same range as [0,1] scaled input data
+            h_tilde_flat = tf.nn.sigmoid(tf.matmul(g_flat, W_g) + b_g)  # (batch*seq_len, hidden_dim)
+
+            # Reshape back to sequence form
+            H_tilde = tf.reshape(h_tilde_flat, [-1, seq_len, hidden_dim]) # (batch, seq_len, hidden_dim)
+            return H_tilde
+
     
     def supervisor(H, T):
         return
