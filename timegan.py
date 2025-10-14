@@ -61,9 +61,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
         with tf.compat.v1.variable_scope("embedder", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Temporal encoder: stacked RNN over timesteps
-            cell = stacked_rnn(hidden_dim, num_layers, module)
-            # outputs: (batch, seq_len, hidden_dim)
-            outputs, _ = tf.compat.v1.nn.dynamic_rnn(cell, X, dtype=tf.float32)
+            outputs = stacked_rnn(X, hidden_dim, num_layers, module, scope="embedder_rnn")
 
             # 2) Per-timestep projection to latent space
             # Flatten time+batch for one dense matrix multiplication (matmul) then reshape back
@@ -87,8 +85,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         """
         with tf.compat.v1.variable_scope("recovery", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Stacked RNN over timesteps
-            cell = stacked_rnn(hidden_dim, num_layers, module)
-            outputs, _ = tf.compat.v1.nn.dynamic_rnn(cell, H, dtype=tf.float32)
+            outputs = stacked_rnn(H, hidden_dim, num_layers, module, scope="recovery_rnn")
 
             # 2) Per-timestep projection to original feature space
             flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
@@ -112,8 +109,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         """
         with tf.compat.v1.variable_scope("generator", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Stacked RNN over timesteps
-            g_cell = stacked_rnn(hidden_dim, num_layers, module)
-            g_outputs, _ = tf.compat.v1.nn.dynamic_rnn(g_cell, Z, dtype=tf.float32)
+            g_outputs = stacked_rnn(Z, hidden_dim, num_layers, module, scope="generator_rnn")
 
             # 2) Per-timestep projection to latent space
             g_flat = tf.reshape(g_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
@@ -138,8 +134,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
         with tf.compat.v1.variable_scope("supervisor", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Stacked RNN over timesteps
-            s_cell = stacked_rnn(hidden_dim, num_layers, module)
-            s_outputs, _ = tf.compat.v1.nn.dynamic_rnn(s_cell, H, dtype=tf.float32) # (batch, seq_len, hidden_dim)
+            s_outputs = stacked_rnn(H, hidden_dim, num_layers, module, scope="supervisor_rnn")
 
             # 2) Per-timestep projection to latent space
             s_flat = tf.reshape(s_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
@@ -159,8 +154,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
         with tf.compat.v1.variable_scope("discriminator", reuse=tf.compat.v1.AUTO_REUSE):
             # 1) Stacked RNN over timesteps
-            d_cell = stacked_rnn(hidden_dim, num_layers, module)
-            d_outputs, _ = tf.compat.v1.nn.dynamic_rnn(d_cell, H_in, dtype=tf.float32)  # (batch, seq_len, hidden_dim)
+            d_outputs = stacked_rnn(H_in, hidden_dim, num_layers, module, scope="discriminator_rnn")
 
             # 2) Sequence summary: take last timestep's hidden state
             last = d_outputs[:, -1, :]  # (batch, hidden_dim)
