@@ -171,8 +171,46 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
             logits = tf.matmul(last, W_d) + b_d  # (batch, 1)
             return logits
-    
-    generated_data = list()
+        
 
-    return generated_data
+    # Sanity check - building graphs without training to check for errors
+    H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
+    X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
+    H_tilde = generator(Z_ph)      # (batch, seq_len, hidden_dim)
+    H_tilde_sup = supervisor(H_tilde)  # (batch, seq_len, hidden_dim)
+
+    # Discriminator logits for real and fake
+    logits_real = discriminator(H_real)          # (batch, 1)
+    logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
+
+    # Collect variable list for each subnet 
+    e_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="embedder")
+    r_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="recovery")
+    g_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="generator")
+    s_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="supervisor")
+    d_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="discriminator")
+
+    handles = {
+        "placeholders": {"X": X_ph, "Z": Z_ph},
+        "tensors": {
+            "H_real": H_real,
+            "X_hat": X_hat,
+            "H_tilde": H_tilde,
+            "H_tilde_sup": H_tilde_sup,
+            "logits_real": logits_real,
+            "logits_fake": logits_fake,
+        },
+        "vars": {
+            "embedder": e_vars,
+            "recovery": r_vars,
+            "generator": g_vars,
+            "supervisor": s_vars,
+            "discriminator": d_vars,
+        },
+        "params": {
+            "seq_len": seq_len,
+            "feature_dim": feature_dim,
+        },
+    }
+    return handles
 
