@@ -81,9 +81,32 @@ Each layers output becomes the input to the next layer
 - More layers can capture more complex patterns, but increases computational cost and risk of overfitting
 - Handled by tensorflow libraries, this function just for specifying which cell we want to use
 """
-def stacked_rnn(hidden_dim: int, num_layers: int, module: str):
-    cells = [make_rnn_cell(hidden_dim, module) for _ in range(num_layers)]
-    return tf.compat.v1.nn.rnn_cell.MultiRNNCell(cells)
+def stacked_rnn(x, hidden_dim: int, num_layers: int, module: str, scope: str = "rnn"):
+    """
+    Apply a stack of Keras RNN layers (GRU or LSTM) to input x.
+    Args:
+        x: Tensor (batch, seq_len, feature_dim)
+        hidden_dim: units per layer
+        num_layers: number of recurrent layers
+        module: 'gru' or 'lstm'
+        scope: name prefix for layers
+    Returns:
+        Tensor (batch, seq_len, hidden_dim)
+    """
+    out = x
+    for i in range(num_layers):
+        layer_name = f"{scope}_{module.lower()}_{i}"
+        if module.lower() == "lstm":
+            layer = tf.keras.layers.LSTM(
+                hidden_dim, return_sequences=True, name=layer_name
+            )
+        else:
+            layer = tf.keras.layers.GRU(
+                hidden_dim, return_sequences=True, name=layer_name
+            )
+        out = layer(out)
+    return out
+
 
 
 """
