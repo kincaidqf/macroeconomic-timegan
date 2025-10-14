@@ -66,7 +66,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             outputs, _ = tf.compat.v1.nn.dynamic_rnn(cell, X, dtype=tf.float32)
 
             # 2) Per-timestep projection to latent space
-            # Flatten time+batch for one dense matmul then reshape back
+            # Flatten time+batch for one dense matrix multiplication (matmul) then reshape back
             flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
 
             # Dense projection (hidden_dim -> hidden_dim) with Xavier init
@@ -81,6 +81,29 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             return H
     
     def recovery(H, T):
+        """
+        H: latent sequences (from embedder) 
+        Returns X_hat: reconstructed sequences from H (batch, L, feature_dim)
+        """
+        with tf.compat.v1.variable_scope("recovery", reuse=tf.compat.v1.AUTO_REUSE):
+            # 1) Stacked RNN over timesteps
+            cell = stacked_rnn(hidden_dim, num_layers, module)
+            outputs, _ = tf.compat.v1.nn.dynamic_rnn(cell, H, dtype=tf.float32)
+
+            # 2) Per-timestep projection to original feature space
+            flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
+
+            # Dense projection (hidden_dim -> feature_dim) with Xavier init
+            W_r = tf.Variable(xavier_init([hidden_dim, feature_dim]), name="W_r")
+            b_r = tf.Variable(tf.zeros([feature_dim], dtype=tf.float32), name="b_r")
+
+            # Activation: sigmoid keeps X_hat in [0,1] which is the same range as [0,1] scaled input data
+            x_hat_flat = tf.nn.sigmoid(tf.matmul(flat, W_r) + b_r)  # (batch*seq_len, feature_dim)
+
+            # Reshape back to sequence form
+            X_hat = tf.reshape(x_hat_flat, [-1, seq_len, feature_dim])  # (batch, seq_len, feature_dim)
+            return X_hat
+
         return
     
     def generator(Z, T):
