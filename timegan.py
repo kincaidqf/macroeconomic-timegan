@@ -179,8 +179,15 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
     X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
 
-    # Reconstruction loss (MSE)
+    # Reconstruction loss on autoencoder (MSE)
     ae_loss = tf.reduce_mean(tf.square(X_ph - X_hat), name="ae_loss")
+
+    # Calling variables here to ensure they are created before being used in optimizers
+    e_vars = vars_with_names(["embedder_rnn", "W_e", "b_e"])
+    r_vars = vars_with_names(["recovery_rnn", "W_r", "b_r"])
+
+    # Creating the autoencoder optimizer
+    ae_train_op = adam.minimize(ae_loss, var_list=e_vars + r_vars)
 
     H_tilde = generator(Z_ph)      # (batch, seq_len, hidden_dim)
     H_tilde_sup = supervisor(H_tilde)  # (batch, seq_len, hidden_dim)
@@ -190,8 +197,6 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
 
     # Collect variable list for each subnet 
-    e_vars = vars_with_names(["embedder_rnn", "W_e", "b_e"])
-    r_vars = vars_with_names(["recovery_rnn", "W_r", "b_r"])
     g_vars = vars_with_names(["generator_rnn", "W_g", "b_g"])
     s_vars = vars_with_names(["supervisor_rnn", "W_s", "b_s"])
     d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
@@ -201,17 +206,12 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         "tensors": {
             "H_real": H_real,
             "X_hat": X_hat,
-            "H_tilde": H_tilde,
-            "H_tilde_sup": H_tilde_sup,
-            "logits_real": logits_real,
-            "logits_fake": logits_fake,
         },
-        "vars": {
-            "embedder": e_vars,
-            "recovery": r_vars,
-            "generator": g_vars,
-            "supervisor": s_vars,
-            "discriminator": d_vars,
+        "losses": {
+            "ae_loss": ae_loss,
+        },
+        "train_ops": {
+            "ae": ae_train_op,
         },
         "params": {
             "seq_len": seq_len,
