@@ -36,6 +36,20 @@ def main():
             if it % 50 == 0 or it == 1:
                 print(f"Step {it:>4}/{steps} | ae_loss: {loss:.6f}")
 
+    '''
+    Result of Test:
+    Loaded: {'train_windows': 155, 'val_windows': 31, 'test_windows': 61}
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    I0000 00:00:1760502852.850892 38347149 mlir_graph_optimization_pass.cc:437] MLIR V1 optimization pass is not enabled
+    Step    1/300 | ae_loss: 0.054511
+    Step   50/300 | ae_loss: 0.024929
+    Step  100/300 | ae_loss: 0.018569
+    Step  150/300 | ae_loss: 0.010809
+    Step  200/300 | ae_loss: 0.008263
+    Step  250/300 | ae_loss: 0.007677
+    Step  300/300 | ae_loss: 0.006710
+    '''
+
 
 def params_test():
     # 1) Load windows (defaults: L=24, stride=1, val=Country7, test=Country8,9)
@@ -85,6 +99,23 @@ def params_test():
         # Optional: check variable groups
         for scope, vars_ in handles["vars"].items():
             print(f"{scope:>12} vars:", len(vars_))
+
+    """
+    Result of test:
+    Loaded: {'train_windows': 155, 'val_windows': 31, 'test_windows': 61}
+    WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+    I0000 00:00:1760481613.924437 38171673 mlir_graph_optimization_pass.cc:437] MLIR V1 optimization pass is not enabled
+    H_real shape: (8, 24, 24)
+    X_hat shape: (8, 24, 5)
+    H_tilde_sup shape: (8, 24, 24)
+    logits_real shape: (8, 1)
+    logits_fake shape: (8, 1)
+    embedder vars: 8
+    recovery vars: 8
+    generator vars: 8
+    supervisor vars: 8
+    discriminator vars: 16
+    """
 
 
 if __name__ == "__main__":
