@@ -9,7 +9,83 @@ from utils import sample_batch
 tf.compat.v1.disable_eager_execution()
 
 def main():
-    return
+    # 1) Load and summarize data
+    train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
+        data_dir=Path("data/clean"),  # adjust if needed
+        L=24,
+        stride=1,
+        val_countries=["Country7"],
+        test_countries=["Country8", "Country9"],
+    )
+    print("Loaded:", summary["counts"])
+    L = summary["shapes"]["window_length"]
+    D = summary["shapes"]["feature_count"]
+    z_dim = D  # we set z_dim = feature_dim in timegan
+
+    # 2) Build graph
+    handles = timegan(train_scaled, parameters=None)
+
+    X_ph = handles["placeholders"]["X"]
+    Z_ph = handles["placeholders"]["Z"]
+
+    # AE tensors/op
+    ae_loss_t = handles["losses"]["ae_loss"]
+    ae_op     = handles["train_ops"]["ae"]
+
+    # GAN tensors/ops
+    d_loss_t  = handles["losses"]["d_loss"]
+    g_loss_t  = handles["losses"]["g_loss"]
+    sup_loss_t= handles["losses"]["sup_loss"]
+    d_op      = handles["train_ops"]["d"]
+    g_op      = handles["train_ops"]["g"]
+
+    X_hat_t   = handles["tensors"]["X_hat"]
+
+    # 3) Train
+    batch_size   = 64
+    ae_warmup_it = 600     # 300–1000 is typical; increase if recon not improving
+    gan_iters    = 3000    # tune as needed (2k–10k); watch losses
+
+    with tf.compat.v1.Session() as sess:
+        sess.run(tf.compat.v1.global_variables_initializer())
+
+        # AE pretrain (embedder + recovery only) 
+        print("\n[Stage 1] AE warm-up")
+        for it in range(1, ae_warmup_it + 1):
+            Xb = sample_batch(train_scaled, batch_size)
+            loss, _ = sess.run([ae_loss_t, ae_op], feed_dict={X_ph: Xb})
+            if it % 100 == 0 or it == 1:
+                print(f"[AE] iter {it:4d}  loss={loss:.6f}")
+
+        # Small sanity check
+        Xb = sample_batch(train_scaled, 4)
+        Xb_hat = sess.run(X_hat_t, feed_dict={X_ph: Xb})
+        print("Recon check shapes:", Xb.shape, "->", Xb_hat.shape)
+
+        # GAN phase (D/G alternating) 
+        print("\n[Stage 2] GAN + supervised training")
+        for it in range(1, gan_iters + 1):
+            # 1) Discriminator step
+            Xb = sample_batch(train_scaled, batch_size)
+            Zb = np.random.normal(0, 1, size=(batch_size, L, z_dim)).astype("float32")
+            _ = sess.run(d_op, feed_dict={X_ph: Xb, Z_ph: Zb})
+
+            # 2) Generator/Supervisor steps (do twice per original spirit)
+            for _ in range(2):
+                Xb = sample_batch(train_scaled, batch_size)
+                Zb = np.random.normal(0, 1, size=(batch_size, L, z_dim)).astype("float32")
+                _ = sess.run(g_op, feed_dict={X_ph: Xb, Z_ph: Zb})
+
+            # Logging
+            if it % 100 == 0 or it == 1:
+                Xb = sample_batch(train_scaled, batch_size)
+                Zb = np.random.normal(0, 1, size=(batch_size, L, z_dim)).astype("float32")
+                d_val, g_val, s_val = sess.run(
+                    [d_loss_t, g_loss_t, sup_loss_t],
+                    feed_dict={X_ph: Xb, Z_ph: Zb}
+                )
+                print(f"[GAN] iter {it:4d} | d_loss={d_val:.4f}  g_loss={g_val:.4f}  sup={s_val:.4f}")
+
 
 def ae_warmup_test():
     # 1) Load data (defaults: L=24, stride=1, val=Country7, test=Country8,9)
