@@ -4,10 +4,14 @@ import tensorflow as tf
 
 from prep_windows import prepare_windows
 from timegan import timegan
+from utils import sample_batch
 
 tf.compat.v1.disable_eager_execution()
 
 def main():
+    return
+
+def params_test():
     # 1) Load windows (defaults: L=24, stride=1, val=Country7, test=Country8,9)
     train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
         data_dir=Path("data/clean")
@@ -55,6 +59,7 @@ def main():
         # Optional: check variable groups
         for scope, vars_ in handles["vars"].items():
             print(f"{scope:>12} vars:", len(vars_))
+
 
 if __name__ == "__main__":
     main()
