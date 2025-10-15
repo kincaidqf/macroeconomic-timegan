@@ -9,7 +9,10 @@ from utils import sample_batch
 tf.compat.v1.disable_eager_execution()
 
 def main():
-    #1) Load data (defaults: L=24, stride=1, val=Country7, test=Country8,9)
+    return
+
+def ae_warmup_test():
+    # 1) Load data (defaults: L=24, stride=1, val=Country7, test=Country8,9)
     train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
         data_dir=Path("data/clean")
     )
@@ -49,7 +52,6 @@ def main():
     Step  250/300 | ae_loss: 0.007677
     Step  300/300 | ae_loss: 0.006710
     '''
-
 
 def params_test():
     # 1) Load windows (defaults: L=24, stride=1, val=Country7, test=Country8,9)
