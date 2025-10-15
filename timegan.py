@@ -188,6 +188,18 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
                     raise RuntimeError(f"Variable lists overlap between groups {i} and {j}:\n" +
                                     "\n".join(sorted(inter)))
 
+    
+    def sample_synthetic(sess, Z_ph, X_tensors, num_samples, seq_len, z_dim):
+        # X_tensors should give you access to the ops you need:
+        #   generator(Z_ph) -> H_tilde
+        #   supervisor(H_tilde) -> H_tilde_sup
+        #   recovery(H_tilde_sup) -> X_tilde
+        # If you already have H_tilde_sup and X_hat tensors wired, you can reuse them.
+        Zb = np.random.normal(0, 1, size=(num_samples, seq_len, z_dim)).astype("float32")
+        X_synth = sess.run(X_tensors["X_from_Z"], feed_dict={Z_ph: Zb})
+
+        return X_synth
+
     # AUTOENCODER
     
     # Autoencoder path (embedder -> recovery): X -> H -> X_hat
