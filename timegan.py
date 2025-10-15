@@ -190,11 +190,11 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
 
     # Collect variable list for each subnet 
-    e_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="embedder")
-    r_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="recovery")
-    g_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="generator")
-    s_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="supervisor")
-    d_vars = tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.TRAINABLE_VARIABLES, scope="discriminator")
+    e_vars = vars_with_names(["embedder_rnn", "W_e", "b_e"])
+    r_vars = vars_with_names(["recovery_rnn", "W_r", "b_r"])
+    g_vars = vars_with_names(["generator_rnn", "W_g", "b_g"])
+    s_vars = vars_with_names(["supervisor_rnn", "W_s", "b_s"])
+    d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
 
     handles = {
         "placeholders": {"X": X_ph, "Z": Z_ph},
