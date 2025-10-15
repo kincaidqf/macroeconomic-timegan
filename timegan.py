@@ -244,20 +244,31 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
 
     # Optimize loss function for Discriminator
-    g_train_op = adam.minimizee(g_loss, var_list=g_vars + s_vars)
+    d_train_op = adam.minimizee(d_loss, var_list=d_vars)
 
 
     handles = {
         "placeholders": {"X": X_ph, "Z": Z_ph},
         "tensors": {
             "H_real": H_real,
+            "H_hat": H_hat,
+            "H_tilde": H_tilde,
+            "H_tilde_sup": H_tilde_sup,
             "X_hat": X_hat,
+            "logits_real": logits_real,
+            "logits_fake": logits_fake,
         },
         "losses": {
             "ae_loss": ae_loss,
+            "sup_loss": sup_loss,
+            "d_loss": d_loss,
+            "g_loss": g_loss,
+            "g_loss_adv": g_loss_adv,
         },
         "train_ops": {
             "ae": ae_train_op,
+            "d": d_train_op,
+            "g": g_train_op,
         },
         "params": {
             "seq_len": seq_len,
