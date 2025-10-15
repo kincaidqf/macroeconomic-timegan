@@ -175,6 +175,8 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
                 picked.append(v)
         return picked
 
+    # AUTOENCODER
+    
     # Autoencoder path (embedder -> recovery): X -> H -> X_hat
     H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
     X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
@@ -189,6 +191,18 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Creating the autoencoder optimizer
     ae_train_op = adam.minimize(ae_loss, var_list=e_vars + r_vars)
 
+    # SUPERVISED AND ADVERSARIAL
+
+    # Supervised path on real latent sequences
+    H_hat = supervisor(H_real)
+
+    # Shifted MSE (supervised loss): H_real[:, 1:, :] vs H_hat[:, :-1, :]
+    sup_loss = tf.reduce_mean(
+        tf.square(H_real[:, 1:, :] - H_hat[:, :-1, :]),
+        name="supervised_loss"
+    )
+
+    # Synthetic latent path
     H_tilde = generator(Z_ph)      # (batch, seq_len, hidden_dim)
     H_tilde_sup = supervisor(H_tilde)  # (batch, seq_len, hidden_dim)
 
@@ -196,10 +210,42 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     logits_real = discriminator(H_real)          # (batch, 1)
     logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
 
-    # Collect variable list for each subnet 
+    # Discriminator loss: BCE with logits 
+    d_loss_real = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=logits_real, labels=tf.ones_like(logits_real)
+        )
+    )
+    d_loss_fake = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=logits_fake, labels=tf.ones_like(logits_fake)
+        )
+    )
+    d_loss = tf.identity(d_loss_real + d_loss_fake, name="d_loss")
+
+    # Generator adversarial loss: make the fake as indistinguishable from real as possible
+    g_loss_adv = tf.reduce_mean(
+        tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=logits_fake, labels=tf.ones_like(logits_fake)
+        )
+    )
+
+    # Total generator loss: adversarial + gamma * supervised
+    g_loss = tf.idenity(g_loss_adv + gamma * sup_loss, name="g_loss")
+
+    # Generator & Supervisor
     g_vars = vars_with_names(["generator_rnn", "W_g", "b_g"])
     s_vars = vars_with_names(["supervisor_rnn", "W_s", "b_s"])
+
+    # Optimize loss function for Generator
+    g_train_op = adam.minimize(g_loss, var_list=g_vars + s_vars)
+
+    # Discriminator
     d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
+
+    # Optimize loss function for Discriminator
+    g_train_op = adam.minimizee(g_loss, var_list=g_vars + s_vars)
+
 
     handles = {
         "placeholders": {"X": X_ph, "Z": Z_ph},
