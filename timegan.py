@@ -166,6 +166,15 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             logits = tf.matmul(last, W_d) + b_d  # (batch, 1)
             return logits
 
+    def vars_with_names(substrings):
+        all_vars = tf.compat.v1.trainable_variables()
+        picked = []
+        for v in all_vars:
+            name = v.name
+            if any(s in name for s in substrings):
+                picked.append(v)
+        return picked
+
     # Autoencoder path (embedder -> recovery): X -> H -> X_hat
     H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
     X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
