@@ -165,11 +165,14 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
             logits = tf.matmul(last, W_d) + b_d  # (batch, 1)
             return logits
-        
 
-    # Sanity check - building graphs without training to check for errors
+    # Autoencoder path (embedder -> recovery): X -> H -> X_hat
     H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
     X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
+
+    # Reconstruction loss (MSE)
+    ae_loss = tf.reduce_mean(tf.square(X_ph - X_hat), name="ae_loss")
+
     H_tilde = generator(Z_ph)      # (batch, seq_len, hidden_dim)
     H_tilde_sup = supervisor(H_tilde)  # (batch, seq_len, hidden_dim)
 
