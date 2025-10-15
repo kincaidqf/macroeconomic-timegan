@@ -166,6 +166,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             logits = tf.matmul(last, W_d) + b_d  # (batch, 1)
             return logits
 
+
     def vars_with_names(substrings):
         all_vars = tf.compat.v1.trainable_variables()
         picked = []
@@ -174,6 +175,18 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             if any(s in name for s in substrings):
                 picked.append(v)
         return picked
+    
+    def names(vars_): return sorted({v.name for v in vars_})
+
+    def assert_disjoint(*var_groups):
+        for i in range(len(var_groups)):
+            for j in range(i+1, len(var_groups)):
+                A = {v.name for v in var_groups[i]}
+                B = {v.name for v in var_groups[j]}
+                inter = A & B
+                if inter:
+                    raise RuntimeError(f"Variable lists overlap between groups {i} and {j}:\n" +
+                                    "\n".join(sorted(inter)))
 
     # AUTOENCODER
     
@@ -231,7 +244,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     )
 
     # Total generator loss: adversarial + gamma * supervised
-    g_loss = tf.idenity(g_loss_adv + gamma * sup_loss, name="g_loss")
+    g_loss = tf.identity(g_loss_adv + gamma * sup_loss, name="g_loss")
 
     # Generator & Supervisor
     g_vars = vars_with_names(["generator_rnn", "W_g", "b_g"])
@@ -244,8 +257,10 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
 
     # Optimize loss function for Discriminator
-    d_train_op = adam.minimizee(d_loss, var_list=d_vars)
+    d_train_op = adam.minimize(d_loss, var_list=d_vars)
 
+    # Assert variables don't overlap in a way that would mess up loss functions, test passed first time, uncomment to run
+    # assert_disjoint(e_vars, r_vars, g_vars, s_vars, d_vars)
 
     handles = {
         "placeholders": {"X": X_ph, "Z": Z_ph},
