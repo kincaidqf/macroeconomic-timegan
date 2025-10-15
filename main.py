@@ -9,7 +9,33 @@ from utils import sample_batch
 tf.compat.v1.disable_eager_execution()
 
 def main():
-    return
+    #1) Load data (defaults: L=24, stride=1, val=Country7, test=Country8,9)
+    train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
+        data_dir=Path("data/clean")
+    )
+    print("Loaded:", summary["counts"]) 
+
+    # 2) Build model graph
+    handles = timegan(train_scaled, parameters=None)
+
+    X_ph = handles["placeholders"]["X"]
+    ae_loss_t = handles["losses"]["ae_loss"]
+    ae_op = handles["train_ops"]["ae"]
+
+    # 3) Train autoencoder on small batch for a few iterations
+    batch_size = 64
+    steps = 300
+
+    with tf.compat.v1.Session() as sess:
+        sess.run(tf.compat.v1.global_variables_initializer())
+
+        for it in range(1, steps + 1):
+            Xb = sample_batch(train_scaled, batch_size)  # (batch, L, D)
+            loss, _ = sess.run([ae_loss_t, ae_op], feed_dict={X_ph: Xb})
+
+            if it % 50 == 0 or it == 1:
+                print(f"Step {it:>4}/{steps} | ae_loss: {loss:.6f}")
+
 
 def params_test():
     # 1) Load windows (defaults: L=24, stride=1, val=Country7, test=Country8,9)
