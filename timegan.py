@@ -200,41 +200,31 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
 
         return X_synth
 
-    # AUTOENCODER
+    # CALLING NETWORKS
     
-    # Autoencoder path (embedder -> recovery): X -> H -> X_hat
-    H_real = embedder(X_ph)          # (batch, seq_len, hidden_dim)
-    X_hat = recovery(H_real)        # (batch, seq_len, feature_dim)
+    # Each input has shape (batch, seq_len, hidden_dim)
 
+    # Autoencoder path (embedder -> recovery): X -> H -> X_hat
+    H_real = embedder(X_ph)          
+    X_hat = recovery(H_real)        
+    H_hat = supervisor(H_real)
+    # Synthetic latent path
+    H_tilde = generator(Z_ph)      
+    H_tilde_sup = supervisor(H_tilde)  
+    # Discriminator logits for real and fake
+    logits_real = discriminator(H_real)          # (batch, 1)
+    logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
+
+    # LOSS FUNCTIONS
     # Reconstruction loss on autoencoder (MSE)
     ae_loss = tf.reduce_mean(tf.square(X_ph - X_hat), name="ae_loss")
-
-    # Calling variables here to ensure they are created before being used in optimizers
-    e_vars = vars_with_names(["embedder_rnn", "W_e", "b_e"])
-    r_vars = vars_with_names(["recovery_rnn", "W_r", "b_r"])
-
-    # Creating the autoencoder optimizer
-    ae_train_op = adam.minimize(ae_loss, var_list=e_vars + r_vars)
-
-    # SUPERVISED AND ADVERSARIAL
-
-    # Supervised path on real latent sequences
-    H_hat = supervisor(H_real)
-
+    
     # Shifted MSE (supervised loss): H_real[:, 1:, :] vs H_hat[:, :-1, :]
     sup_loss = tf.reduce_mean(
         tf.square(H_real[:, 1:, :] - H_hat[:, :-1, :]),
         name="supervised_loss"
     )
-
-    # Synthetic latent path
-    H_tilde = generator(Z_ph)      # (batch, seq_len, hidden_dim)
-    H_tilde_sup = supervisor(H_tilde)  # (batch, seq_len, hidden_dim)
-
-    # Discriminator logits for real and fake
-    logits_real = discriminator(H_real)          # (batch, 1)
-    logits_fake = discriminator(H_tilde_sup)     # (batch, 1)
-
+    
     # Discriminator loss: BCE with logits 
     d_loss_real = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
@@ -258,16 +248,19 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Total generator loss: adversarial + gamma * supervised
     g_loss = tf.identity(g_loss_adv + gamma * sup_loss, name="g_loss")
 
+    # Calling variables here to ensure they are created before being used in optimizers
+    e_vars = vars_with_names(["embedder_rnn", "W_e", "b_e"])
+    r_vars = vars_with_names(["recovery_rnn", "W_r", "b_r"])
     # Generator & Supervisor
     g_vars = vars_with_names(["generator_rnn", "W_g", "b_g"])
     s_vars = vars_with_names(["supervisor_rnn", "W_s", "b_s"])
-
-    # Optimize loss function for Generator
-    g_train_op = adam.minimize(g_loss, var_list=g_vars + s_vars)
-
     # Discriminator
     d_vars = vars_with_names(["discriminator_rnn", "W_d", "b_d"])
 
+    # Creating the autoencoder optimizer
+    ae_train_op = adam.minimize(ae_loss, var_list=e_vars + r_vars)
+    # Optimize loss function for Generator
+    g_train_op = adam.minimize(g_loss, var_list=g_vars + s_vars)
     # Optimize loss function for Discriminator
     d_train_op = adam.minimize(d_loss, var_list=d_vars)
 
