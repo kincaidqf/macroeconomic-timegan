@@ -1,0 +1,9 @@
+{
+  "L": 24,
+  "D": 5,
+  "z_dim": 5,
+  "batch_size": 64,
+  "ae_warmup_it": 600,
+  "gan_iters": 3000,
+  "gamma": 1.0
+}
