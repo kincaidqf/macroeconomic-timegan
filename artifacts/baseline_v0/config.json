@@ -1,7 +1,7 @@
 {
   "L": 24,
-  "D": 5,
-  "z_dim": 5,
+  "D": 4,
+  "z_dim": 4,
   "batch_size": 64,
   "ae_warmup_it": 600,
   "gan_iters": 3000,
