@@ -279,6 +279,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
             "X_hat": X_hat,
             "logits_real": logits_real,
             "logits_fake": logits_fake,
+            "X_from_Z": X_from_Z,
         },
         "losses": {
             "ae_loss": ae_loss,
@@ -295,9 +296,6 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         "params": {
             "seq_len": seq_len,
             "feature_dim": feature_dim,
-        },
-        "tensors": {
-            "X_from_Z": X_from_Z,
         },
     }
     return handles
