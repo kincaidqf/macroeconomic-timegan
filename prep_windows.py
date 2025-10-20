@@ -20,7 +20,7 @@ import argparse
 import numpy as np
 import pandas as pd
 
-FEATURES = ["Inflation", "Unemployment", "GDP Growth", "GDP per capita", "Population Growth"]
+FEATURES = ["Inflation", "Unemployment", "GDP Growth", "Population Growth"]
 
 def load_country_series(folder: Path) -> Dict[str, pd.DataFrame]:
     """
