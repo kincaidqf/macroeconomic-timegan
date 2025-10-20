@@ -86,6 +86,21 @@ def main():
                 )
                 print(f"[GAN] iter {it:4d} | d_loss={d_val:.4f}  g_loss={g_val:.4f}  sup={s_val:.4f}")
 
+        N = len(train_scaled)
+
+        L = summary["shapes"]["window_length"]
+        D = summary["shapes"]["feature_count"]
+        z_dim = D  # we set z_dim = feature_dim in timegan  
+
+        # sample noise to pass in to generator
+        Zb = np.random.normal(0, 1, size=(N, L, z_dim)).astype("float32")
+
+        # Run synthetic data generating tensor
+        X_scaled_synth = sess.run(
+            handles["tensors"]["X_from_Z"],
+            feed_dict={handles["placeholders"]["Z"]: Zb}
+        ) # shape (N, L, D) scaled [0,1]
+
 
 def ae_warmup_test():
     # 1) Load data (defaults: L=24, stride=1, val=Country7, test=Country8,9)
