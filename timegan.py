@@ -267,6 +267,8 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Assert variables don't overlap in a way that would mess up loss functions, test passed first time, uncomment to run
     # assert_disjoint(e_vars, r_vars, g_vars, s_vars, d_vars)
 
+    X_from_Z = recovery(supervisor(generator(Z_ph)))
+
     handles = {
         "placeholders": {"X": X_ph, "Z": Z_ph},
         "tensors": {
@@ -293,6 +295,9 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
         "params": {
             "seq_len": seq_len,
             "feature_dim": feature_dim,
+        },
+        "tensors": {
+            "X_from_Z": X_from_Z,
         },
     }
     return handles
