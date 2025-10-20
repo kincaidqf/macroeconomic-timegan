@@ -93,6 +93,8 @@ def main():
         D = summary["shapes"]["feature_count"]
         z_dim = D  # we set z_dim = feature_dim in timegan  
 
+        np.random.seed(42)
+
         # sample noise to pass in to generator
         Zb = np.random.normal(0, 1, size=(N, L, z_dim)).astype("float32")
 
@@ -107,20 +109,26 @@ def main():
         out_dir = Path("artifacts/baseline_v0")
         out_dir.mkdir(parents=True, exist_ok=True)
         
-        np.save(out_dir / "synthetic_scaled.npy", X_synth_orig)
-        np.save(out_dir / "synthetic_orig.npy", X_scaled_synth)
+        np.save(out_dir / "synthetic_orig.npy", X_synth_orig)
+        np.save(out_dir / "synthetic_scaled.npy", X_scaled_synth)
 
         cfg = {
             "L": L,
             "D": D,
             "z_dim": z_dim,
-            "bathch_size": batch_size,
+            "batch_size": batch_size,
             "ae_warmup_it": ae_warmup_it,
             "gan_iters": gan_iters,
             "gamma": 1.0
         }
 
         (out_dir / "config.json").write_text(json.dumps(cfg, indent=2))
+
+        print("Synthetic (scaled) min/max:", float(X_scaled_synth.min()), float(X_scaled_synth.max()))
+        print("Synthetic (orig)   mean/std per feature (first window):",
+            X_synth_orig[0].mean(axis=0), X_synth_orig[0].std(axis=0))
+        print("Saved to:", out_dir.resolve())
+
 
 
 def ae_warmup_test():
