@@ -1,6 +1,7 @@
 from pathlib import Path
 import numpy as np
 import tensorflow as tf
+import json
 
 from prep_windows import prepare_windows
 from timegan import timegan
@@ -100,6 +101,26 @@ def main():
             handles["tensors"]["X_from_Z"],
             feed_dict={handles["placeholders"]["Z"]: Zb}
         ) # shape (N, L, D) scaled [0,1]
+
+        X_synth_orig = X_scaled_synth * rng + minv  # reverse scaling
+
+        out_dir = Path("artifacts/baseline_v0")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        
+        np.save(out_dir / "synthetic_scaled.npy", X_synth_orig)
+        np.save(out_dir / "synthetic_orig.npy", X_scaled_synth)
+
+        cfg = {
+            "L": L,
+            "D": D,
+            "z_dim": z_dim,
+            "bathch_size": batch_size,
+            "ae_warmup_it": ae_warmup_it,
+            "gan_iters": gan_iters,
+            "gamma": 1.0
+        }
+
+        (out_dir / "config.json").write_text(json.dumps(cfg, indent=2))
 
 
 def ae_warmup_test():
