@@ -11,7 +11,7 @@ ROW_TO_HEADER = {
     r"population.*growth": "Population Growth",
 }
 
-TARGET_HEADERS = ["Year", "Inflation", "Unemployment", "GDP Growth", "Population Growth"]
+TARGET_HEADERS = ["Year", "Inflation", "Unemployment", "GDP Growth", "GDP per capita", "Population Growth"]
 
 def map_series_to_header(series_name: str) -> str | None:
     if not isinstance(series_name, str):
