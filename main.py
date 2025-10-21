@@ -112,6 +112,14 @@ def main():
         np.save(out_dir / "synthetic_orig.npy", X_synth_orig)
         np.save(out_dir / "synthetic_scaled.npy", X_scaled_synth)
 
+        train_orig = np.stack(train_scaled, axis=0) * rng + minv
+        test_orig = np.stack(test_scaled, axis=0) * rng + minv
+        val_orig = np.stack(val_scaled, axis=0) * rng + minv
+        
+        np.save(out_dir / "train_orig.npy", train_orig)
+        np.save(out_dir / "test_orig.npy", test_orig)
+        np.save(out_dir / "val_orig.npy", val_orig)
+
         cfg = {
             "L": L,
             "D": D,
