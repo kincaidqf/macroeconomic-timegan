@@ -1,3 +1,5 @@
+import numpy as np
+
 def load_data(real_path, synth_path):
     pass
 
