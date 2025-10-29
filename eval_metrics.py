@@ -23,12 +23,55 @@ def load_data(real_path, synth_path):
     pass
 
 def test_marginals(real, synth):
+    """
+    Per-feature comparison of marginal distributions
+
+    Purpose:
+        - Do real and synthetic marginal distributions match?
+        - Use 1D tests feature-by-feature (ignoring time ordering)
+
+    Tests:
+        - Kolmogorov-Smirnov (KS) test
+        - Wasserstein distance
+
+    Inputs:
+        real - numpy array of real data (N, L, D)
+
+    Outputs:
+        ks_mean: float mean KS statistic aggregate 
+        ws_mean: float Wasserstein distance aggregate 
+        ks_per_feature - list[float length D]
+        ws_per_feature - list[float length D]
+    """
     pass
 
 def test_correlation(real, synth):
+    """
+    Cross-feature correlation comparison
+
+    Purpose:
+        - Do the cross-sectional relationships between features match
+        - Compare D by D correlation matricies from real vs synthetic
+        - Pooled accross all time steps and windows
+        - Not comparing time steps/realisticness, just similarities of correlations
+
+    Tests:
+        - Frobenius norm between correlation matrices
+        - Maximum absolute difference between correlation matrices
+
+    Inputs:
+        real - numpy array of real data (N, L, D)
+        synth - numpy array of synthetic data (N, L, D)
+
+    Outputs:
+        - corr_frobenius: float     ||Corr_real - Corr_synth||_F
+        - corr_max_abs: float       max dif = |Corr_real - Corr_synth|
+    """
     pass
 
+
 def test_acf(real, synth):
+    
     pass
 
 def test_discriminative(real, synth):
