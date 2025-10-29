@@ -71,10 +71,42 @@ def test_correlation(real, synth):
 
 
 def test_acf(real, synth):
-    
+    """
+    Autocorrelation function (ACF) comparison, test of temporal structury within features
+
+    Purpose:
+        - Do autocorrelation structures match between real and synthetic data
+
+    Tests:
+        - ACF for each window, then average accross windows
+        - Compute RMSE between real and synthetic ACFs for each feature
+
+    Inputs: 
+        real - numpy array of real data (N, L, D)
+        synth - numpy array of synthetic data (N, L, D)
+        max_lag - int, maximum lag to compute ACF for
+
+    Outpus:
+        - acf_rmse_mean: float mean RMSE across features
+        - acf_rmse_per_feature: list[float length D]
+    """
     pass
 
 def test_discriminative(real, synth):
+    """
+    Discriminative score (classifier accuracy between real and synthetic)
+
+    Purpose:
+        - Can a classifier distinguish real vs synthetic data?
+        - If accuracy is close to 50%, synthetic data is realistic
+    
+    Inputs:
+        real - numpy array of real data (N, L, D)
+        synth - numpy array of synthetic data (N, L, D)
+
+    Outputs:
+        - accuracy: float classifier accuracy on test set
+    """
     pass
 
 def test_predictive(real, synth):
