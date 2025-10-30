@@ -179,10 +179,11 @@ def test_knn_novelty(real, synth):
     pass
 
 def main():
-    """
-    Orchestrates evaluation:
-        - Loads real and synthetic data
-        - Collect metrics into a single dictionary
-        - Print/save results
-    """
-    pass
+    real_path = "artifacts/baseline_v0/train_orig.npy"
+    synth_path = "artifacts/baseline_v0/synthetic_orig.npy"
+
+    real, synth = load_data(real_path, synth_path, match_shapes=True)
+
+    # Check for successful loading
+    print(f"Loaded real data shape: {real.shape}")
+    print(f"Loaded synthetic data shape: {synth.shape}")
