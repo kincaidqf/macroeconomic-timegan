@@ -1,6 +1,8 @@
 import numpy as np
+from pathlib import Path
+from typing import Tuple, Dict
 
-def load_data(real_path, synth_path):
+def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tuple[np.ndarray, np.ndarray]:
     """
     Load saved .npy arrays 
 
@@ -18,9 +20,37 @@ def load_data(real_path, synth_path):
         synth - numpy array of synthetic data  
     """
 
-    # TODO: load arrays
-    # TODO: check shapes match
-    pass
+    real = np.load(real_path, allow_pickle=True)
+    synth = np.load(synth_path, allow_pickle=True)
+
+    # Type checks
+    if isinstance(real, list): real = np.array(real, dtype=np.float32)
+    if isinstance(synth, list): synth = np.array(synth, dtype=np.float32)
+
+    # Shape check
+    if real.ndim != 3 or synth.ndim != 3:
+        raise ValueError(f"Expected 3D arrays (N, L, D), got real.ndim={real.ndim}, synth.ndim={synth.ndim}")
+    
+    N_r, L_r, D_r = real.shape
+    N_s, L_s, D_s = synth.shape
+    if L_r != L_s or D_r != D_s:
+        raise ValueError(f"Shape mismatch between real and synth: real(L={L_r},D={D_r}), synth(L={L_s},D={D_s})")  
+    
+    if match_shapes and N_r != N_s:
+        N = min(N_r, N_s)
+        real = real[:N]
+        synth = synth[:N]
+    else:
+        N = min(N_r, N_s)
+
+    # Ensure float32 dtype
+    real = real.astype(np.float32, copy=False)
+    synth = synth.astype(np.float32, copy=False)
+
+    # Final check
+    assert real.shape[1:] == synth.shape[1:], "Post-processing shapes must match"
+    return real, synth
+
 
 def test_marginals(real, synth):
     """
