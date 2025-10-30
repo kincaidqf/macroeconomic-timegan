@@ -110,10 +110,49 @@ def test_discriminative(real, synth):
     pass
 
 def test_predictive(real, synth):
+    """
+    Predictive score (train on synthetic, test on real)
+
+    Purpose:
+        - Test utility of synthetic data for training downstream models
+        - Train a one-step ahead predictor on synthetic data
+        - Test performance on real data
+
+    Inputs:
+        real - numpy array of real data (N, L, D)
+        synth - numpy array of synthetic data (N, L, D)
+
+    Outputs:
+        - mse: float mean squared error on real test set
+        - mse_per_feature: list[float length D]
+    """
     pass
 
 def test_knn_novelty(real, synth):
+    """
+    Novelty / coverage via nearest neighbors
+
+    Purpose:
+        - Are synthetic samples novel, or just copies of real data?
+        - Do synthetic samples cover the real data distribution?
+        - Compare distributions of nearest neighbor distances
+
+    Inputs:
+        real - numpy array of real data (N, L, D)
+        synth - numpy array of synthetic data (N, L, D)
+
+    Outputs:
+        - knn_synth_mean: float mean nearest neighbor distance from synthetic to real
+        - knn_real_mean: float mean nearest neighbor distance from real to synthetic
+        - knn_asymmetry: float |knn_synth_mean - knn_real_mean|
+    """
     pass
 
 def main():
+    """
+    Orchestrates evaluation:
+        - Loads real and synthetic data
+        - Collect metrics into a single dictionary
+        - Print/save results
+    """
     pass
