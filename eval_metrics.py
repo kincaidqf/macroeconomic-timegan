@@ -1,6 +1,7 @@
 import numpy as np
 from pathlib import Path
 from typing import Tuple, Dict
+from scipy.stats import ks_2samp, wasserstein_distance
 
 def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -52,7 +53,7 @@ def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tup
     return real, synth
 
 
-def test_marginals(real, synth):
+def test_marginals(real: np.ndarray, synth: np.ndarray, return_per_feature: bool = True):
     """
     Per-feature comparison of marginal distributions
 
@@ -73,7 +74,49 @@ def test_marginals(real, synth):
         ks_per_feature - list[float length D]
         ws_per_feature - list[float length D]
     """
-    pass
+
+    _, _, D = real.shape
+    ks_stats, ks_pvals, wdists = [], [], []
+    mean_diff, std_diff = [], []
+
+    for d in range (D):
+        r = real[:, :, d].ravel()
+        s = synth[:, :, d].ravel()
+
+        # Compute KS statistic and p-value
+        ks_stat, ks_p = ks_2samp(r, s, alternative='two-sided', method="auto")
+        ks_stats.append(float(ks_stat))
+        ks_pvals.append(float(ks_p))
+
+        # Compute Wasserstein distance
+        wd = wasserstein_distance(r, s)
+        wdists.append(float(wd))
+
+        # Moment diffs (synth - real)
+        mean_diff.append(float(np.mean(s) - np.mean(r)))
+        std_diff.append(float(np.std(s, ddof=1) - np.std(r, ddof=1)))
+
+    metrics = {
+        # Aggregates
+        "ks_mean": float(np.mean(ks_stats)),
+        "ks_max": float(np.max(ks_stats)),
+        "ks_p_mean": float(np.mean(ks_pvals)),
+        "wd_mean": float(np.mean(wdists)),
+        "wd_max": float(np.max(wdists)),
+        "mean_abs_diff_mean": float(np.mean(np.abs(mean_diff))),
+        "std_abs_diff_mean": float(np.mean(np.abs(std_diff))),
+    }
+
+    if return_per_feature:
+        metrics.update({
+            "ks_per_feature": ks_stats,
+            "ks_p_per_feature": ks_pvals,
+            "wd_per_feature": wdists,
+            "mean_diff_per_feature": mean_diff,
+            "std_diff_per_feature": std_diff,
+        })
+        
+    return metrics
 
 def test_correlation(real, synth):
     """
