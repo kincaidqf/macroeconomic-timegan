@@ -118,6 +118,7 @@ def test_marginals(real: np.ndarray, synth: np.ndarray, return_per_feature: bool
 
     return metrics
 
+
 def test_correlation(real, synth):
     """
     Cross-feature correlation comparison
@@ -176,6 +177,35 @@ def test_correlation(real, synth):
     }
 
     return metrics
+
+
+def _acf_1d(x: np.ndarray, max_lag: int) -> np.ndarray:
+    """
+    Compute autocorrelation function for a 1D array x up to max_lag (inclusive).
+    Returns array of length max_lag + 1, with acf[0] = 1.0.
+
+    If variance is ~0 (constant series), returns zeros except acf[0] = 1.0.
+    """
+    x = np.asarray(x, dtype=float)
+    n = x.shape[0]
+    if n <= 1:
+        return np.ones(max_lag + 1, dtype=float)
+
+    x = x - np.mean(x)
+    var = np.mean(x ** 2)
+    if var < 1e-12:
+        acf = np.zeros(max_lag + 1, dtype=float)
+        acf[0] = 1.0
+        return acf
+
+    acf = np.empty(max_lag + 1, dtype=float)
+    acf[0] = 1.0
+    for lag in range(1, max_lag + 1):
+        # truncate overlapping part for this lag
+        s1 = x[:-lag]
+        s2 = x[lag:]
+        acf[lag] = np.mean(s1 * s2) / var
+    return acf
 
 
 def test_acf(real, synth, max_lag: int = 8):
@@ -257,6 +287,7 @@ def test_acf(real, synth, max_lag: int = 8):
     }
     return metrics
 
+
 def test_discriminative(real, synth):
     """
     Discriminative score (classifier accuracy between real and synthetic)
@@ -273,6 +304,7 @@ def test_discriminative(real, synth):
         - accuracy: float classifier accuracy on test set
     """
     pass
+
 
 def test_predictive(real, synth):
     """
