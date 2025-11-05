@@ -291,7 +291,7 @@ def test_acf(real, synth, max_lag: int = 8):
     return metrics
 
 
-def test_discriminative(real, synth):
+def test_discriminative(real, synth, test_size: float = 0.3, random_state: int = 42):
     """
     Discriminative score (classifier accuracy between real and synthetic)
 
