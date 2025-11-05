@@ -178,7 +178,7 @@ def test_correlation(real, synth):
     return metrics
 
 
-def test_acf(real, synth):
+def test_acf(real, synth, max_lag: int = 8):
     """
     Autocorrelation function (ACF) comparison, test of temporal structury within features
 
@@ -198,7 +198,64 @@ def test_acf(real, synth):
         - acf_rmse_mean: float mean RMSE across features
         - acf_rmse_per_feature: list[float length D]
     """
-    pass
+    N_r, L, D = real.shape
+    N_s, _, _ = synth.shape
+
+    # Clip max_lag to at most L-1
+    max_lag_eff = int(min(max_lag, L - 1))
+    if max_lag_eff < 1:
+        raise ValueError(f"max_lag must be >= 1 and < L; got max_lag={max_lag}, L={L}")
+
+    # We'll store average ACF over windows for each feature
+    acf_real = np.zeros((D, max_lag_eff), dtype=float)   # lags 1..max_lag_eff
+    acf_synth = np.zeros((D, max_lag_eff), dtype=float)
+
+    # Count how many windows contributed per feature (in case we skip any)
+    count_real = np.zeros(D, dtype=int)
+    count_synth = np.zeros(D, dtype=int)
+
+    # Real data
+    for n in range(N_r):
+        for d in range(D):
+            x = real[n, :, d]
+            if not np.all(np.isfinite(x)):
+                continue
+            acf_vals = _acf_1d(x, max_lag_eff)  # length max_lag_eff+1
+            acf_real[d, :] += acf_vals[1:]      # skip lag 0 (always 1)
+            count_real[d] += 1
+
+    # Synthetic data
+    for n in range(N_s):
+        for d in range(D):
+            x = synth[n, :, d]
+            if not np.all(np.isfinite(x)):
+                continue
+            acf_vals = _acf_1d(x, max_lag_eff)
+            acf_synth[d, :] += acf_vals[1:]
+            count_synth[d] += 1
+
+    # Avoid division by zero: if a feature gets no valid windows, leave ACF as zeros
+    for d in range(D):
+        if count_real[d] > 0:
+            acf_real[d, :] /= count_real[d]
+        if count_synth[d] > 0:
+            acf_synth[d, :] /= count_synth[d]
+
+    # RMSE per feature between average real vs synthetic ACF curves
+    rmse_per_feature = []
+    for d in range(D):
+        diff = acf_real[d, :] - acf_synth[d, :]
+        rmse = float(np.sqrt(np.mean(diff ** 2)))
+        rmse_per_feature.append(rmse)
+
+    acf_rmse = float(np.mean(rmse_per_feature))
+
+    metrics = {
+        "acf_rmse": acf_rmse,
+        "acf_rmse_per_feature": rmse_per_feature,
+        "acf_lags": list(range(1, max_lag_eff + 1)),
+    }
+    return metrics
 
 def test_discriminative(real, synth):
     """
