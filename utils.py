@@ -112,6 +112,8 @@ def stacked_rnn(x, hidden_dim: int, num_layers: int, module: str, scope: str = "
 """
 Xavier (also called Glorot) initialization
 Creates a random weight matrix with values drawn from a normal distribution
+Weights go into neural network layers, adapted during training by adam optimizer
+- Helps keep the scale of the gradients roughly the same in all layers
 - If weights are too big, activations can explode
 - If weights are too small, activations can vanish
 """
@@ -156,9 +158,7 @@ def make_optimizer(lr: float = 1e-3):
     return tf.compat.v1.train.AdamOptimizer(learning_rate=lr)
 
 
-# ----------------------
 # Default params
-# ----------------------
 DEFAULT_PARAMS: Dict = {
     "hidden_dim": 24,
     "num_layers": 2,
