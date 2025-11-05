@@ -115,7 +115,7 @@ def test_marginals(real: np.ndarray, synth: np.ndarray, return_per_feature: bool
             "mean_diff_per_feature": mean_diff,
             "std_diff_per_feature": std_diff,
         })
-        
+
     return metrics
 
 def test_correlation(real, synth):
@@ -140,6 +140,19 @@ def test_correlation(real, synth):
         - corr_frobenius: float     ||Corr_real - Corr_synth||_F
         - corr_max_abs: float       max dif = |Corr_real - Corr_synth|
     """
+
+    N_r, L, D = real.shape
+    N_s, _, _ = synth.shape
+
+    # Pool across windows/time - reshape to (N*L, D)
+    Xr = real.reshape((N_r * L, D))
+    Xs = synth.reshape((N_s * L, D))
+
+    # To be safe drop rows with non-finite values (NaN, Inf)
+    mask_r = np.isfinite(Xr).all(axis=1)
+    mask_s = np.isfinite(Xs).all(axis=1)
+    Xr = Xr[mask_r]
+    Xs = Xs[mask_s]
     pass
 
 
