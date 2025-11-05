@@ -2,6 +2,9 @@ import numpy as np
 from pathlib import Path
 from typing import Tuple, Dict
 from scipy.stats import ks_2samp, wasserstein_distance
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score, accuracy_score
 
 def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -303,7 +306,44 @@ def test_discriminative(real, synth):
     Outputs:
         - accuracy: float classifier accuracy on test set
     """
-    pass
+    N_r, L, D = real.shape
+    N_s, _, _ = synth.shape
+
+    # Flatten windows: (N, L*D)
+    X_real = real.reshape(N_r, L * D)
+    X_synth = synth.reshape(N_s, L * D)
+
+    # Labels: real=1, synthetic=0
+    y_real = np.ones(N_r, dtype=int)
+    y_synth = np.zeros(N_s, dtype=int)
+
+    # Combine
+    X = np.concatenate([X_real, X_synth], axis=0)
+    y = np.concatenate([y_real, y_synth], axis=0)
+
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state, stratify=y
+    )
+
+    # Simple classifier: Logistic Regression
+    # solver 'lbfgs' works fine for small/medium problems; increase max_iter just in case
+    clf = LogisticRegression(max_iter=1000)
+    clf.fit(X_train, y_train)
+
+    # Evaluate
+    y_proba = clf.predict_proba(X_test)[:, 1]  # probability of "real" (label 1)
+    y_pred = clf.predict(X_test)
+
+    auc = float(roc_auc_score(y_test, y_proba))
+    acc = float(accuracy_score(y_test, y_pred))
+
+    metrics = {
+        "disc_auc": auc,
+        "disc_acc": acc,
+        "disc_test_size": float(test_size),
+    }
+    return metrics
 
 
 def test_predictive(real, synth):
@@ -325,6 +365,7 @@ def test_predictive(real, synth):
     """
     pass
 
+
 def test_knn_novelty(real, synth):
     """
     Novelty / coverage via nearest neighbors
@@ -344,6 +385,7 @@ def test_knn_novelty(real, synth):
         - knn_asymmetry: float |knn_synth_mean - knn_real_mean|
     """
     pass
+
 
 def main():
     real_path = "artifacts/baseline_v0/train_orig.npy"
