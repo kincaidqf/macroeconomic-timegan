@@ -153,7 +153,29 @@ def test_correlation(real, synth):
     mask_s = np.isfinite(Xs).all(axis=1)
     Xr = Xr[mask_r]
     Xs = Xs[mask_s]
-    pass
+
+    # Compute correlation matrices
+    Corr_r = np.corrcoef(Xr, rowvar=False)  # Shape (D, D)
+    Corr_s = np.corrcoef(Xs, rowvar=False)
+
+    # Replace NaNs/infinities with zeros (in case of constant features)
+    Corr_r = np.nan_to_num(Corr_r, nan=0.0, posinf=0.0, neginf=0.0)
+    Corr_s = np.nan_to_num(Corr_s, nan=0.0, posinf=0.0, neginf=0.0)
+
+    # Difference metrics
+    delta = Corr_r - Corr_s
+    frob = float(np.linalg.norm(delta, ord='fro'))
+    max_abs = float(np.max(np.abs(delta)))
+    mae = float(np.mean(np.abs(delta))) 
+
+    metrics = {
+        "corr_frobenius_diff": frob,
+        "corr_max_abs_diff": max_abs,
+        "corr_mae": mae,
+        "corr_method": "pearson",
+    }
+
+    return metrics
 
 
 def test_acf(real, synth):
