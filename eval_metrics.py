@@ -265,3 +265,9 @@ def main():
     # Check for successful loading
     print(f"Loaded real data shape: {real.shape}")
     print(f"Loaded synthetic data shape: {synth.shape}")
+
+    corr_pix = test_correlation(real, synth)
+    print("[Correlation] pearson",
+          "Frob:", corr_pix["corr_frobenius_diff"],
+          "Max|Δ|:", corr_pix["corr_max_abs_diff"],
+          "MAE:", corr_pix["corr_mae"])
