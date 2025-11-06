@@ -522,10 +522,23 @@ def run_evaluation(real_path: str, synth_path: str, out_dir: str, scenario_name:
 
 
 def main():
-    real_path = "artifacts/baseline_v0/train_orig.npy"
+    base = "artifacts/"
+    
+    real_train_path = "artifacts/baseline_v0/train_orig.npy"
+    real_val_path = "artifacts/baseline_v0/val_orig.npy"
+    real_test_path = "artifacts/baseline_v0/test_orig.npy"
     synth_path = "artifacts/baseline_v0/synthetic_orig.npy"
 
-    real, synth = load_data(real_path, synth_path, match_shapes=True)
+    results_dir = base / "results"
+
+    run_evaluation(
+        real_path=real_train_path,
+        synth_path=real_val_path,
+        out_dir=results_dir,
+        scenario_name="real_vs_real_baseline"
+    )
+
+
 
     # Check for successful loading
     # print(f"Loaded real data shape: {real.shape}")
