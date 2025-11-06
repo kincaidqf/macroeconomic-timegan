@@ -112,6 +112,7 @@ def main():
         np.save(out_dir / "synthetic_orig.npy", X_synth_orig)
         np.save(out_dir / "synthetic_scaled.npy", X_scaled_synth)
 
+        # Stack windows into 3D arrays (N, L, D)
         train_orig = np.stack(train_scaled, axis=0) * rng + minv
         test_orig = np.stack(test_scaled, axis=0) * rng + minv
         val_orig = np.stack(val_scaled, axis=0) * rng + minv
@@ -119,6 +120,15 @@ def main():
         np.save(out_dir / "train_orig.npy", train_orig)
         np.save(out_dir / "test_orig.npy", test_orig)
         np.save(out_dir / "val_orig.npy", val_orig)
+
+        # Stack windows into 3D arrays (N, L, D)
+        train_scaled_arr = np.stack(train_scaled, axis=0).astype(np.float32)
+        test_scaled_arr = np.stack(test_scaled, axis=0).astype(np.float32)
+        val_scaled_arr = np.stack(val_scaled, axis=0).astype(np.float32)
+        
+        np.save(out_dir / "train_scaled.npy", train_scaled_arr)
+        np.save(out_dir / "test_scaled.npy", test_scaled_arr)
+        np.save(out_dir / "val_scaled.npy", val_scaled_arr)
 
         cfg = {
             "L": L,
