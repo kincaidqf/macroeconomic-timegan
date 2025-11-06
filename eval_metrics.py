@@ -411,6 +411,7 @@ def test_predictive(real, synth):
     }
     return metrics
 
+
 def test_knn_novelty(real, synth, standardize: bool = True):
     """
     Novelty / coverage via nearest neighbors
@@ -471,6 +472,53 @@ def test_knn_novelty(real, synth, standardize: bool = True):
         "knn_standardized": bool(standardize),
     }
     return metrics
+
+
+def run_evaluation(real_path: str, synth_path: str, out_dir: str, scenario_name: str) -> None:
+    """
+    Run all evaluation metrics for a given pair of datasets and save results as JSON.
+
+    Parameters
+    ----------
+    real_path : str
+        Path to .npy file with "real" windows (N, L, D) in original units.
+    synth_path : str
+        Path to .npy file treated as "synthetic" (also real in the real-vs-real case).
+    out_dir : str
+        Directory where the results JSON will be written.
+    scenario_name : str
+        Label for this experiment (e.g., "real_vs_real", "real_vs_synth_v0").
+    """
+    # Load and align shapes / counts
+    real, synth = load_data(real_path, synth_path, match_counts=True)
+
+    N, L, D = real.shape
+
+    # Collect all metrics into a single dict
+    results = {
+        "scenario": scenario_name,
+        "real_path": real_path,
+        "synth_path": synth_path,
+        "N": int(N),
+        "L": int(L),
+        "D": int(D),
+    }
+
+    # Run each test and merge the returned dicts
+    results.update(test_marginals(real, synth))
+    results.update(test_correlation(real, synth))
+    results.update(test_acf(real, synth, max_lag=8))
+    results.update(test_discriminative(real, synth))
+    results.update(test_predictive(real, synth))
+    results.update(test_knn_novelty(real, synth, standardize=True))
+
+    # Save to JSON
+    out_dir_path = Path(out_dir)
+    out_dir_path.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir_path / f"{scenario_name}_metrics.json"
+
+    out_path.write_text(json.dumps(results, indent=2))
+    print(f"Saved metrics for '{scenario_name}' to {out_path}")
 
 
 def main():
