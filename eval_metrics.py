@@ -4,7 +4,8 @@ from typing import Tuple, Dict
 from scipy.stats import ks_2samp, wasserstein_distance
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, accuracy_score
+from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error
+from sklearn.linear_model import LinearRegression
 
 def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -363,8 +364,48 @@ def test_predictive(real, synth):
         - mse: float mean squared error on real test set
         - mse_per_feature: list[float length D]
     """
-    pass
+    N_r, L, D = real.shape
+    N_s, _, _ = synth.shape
 
+    if L < 2:
+        raise ValueError(f"Need at least 2 timesteps for prediction task, got L={L}")
+
+    # Build supervised pairs:
+    # X = flattened first L-1 timesteps of ALL features -> shape (N, (L-1)*D)
+    # y_d = value of feature d at last timestep
+    def build_X_y(arr: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        N, L_, D_ = arr.shape
+        X = arr[:, :-1, :].reshape(N, (L_ - 1) * D_)  # (N, (L-1)*D)
+        y = arr[:, -1, :]                             # (N, D) targets for each feature
+        return X, y
+
+    X_real, y_real_all = build_X_y(real)   # y_real_all: (N_r, D)
+    X_synth, y_synth_all = build_X_y(synth)
+
+    tstr_mse_per_feature = []
+
+    # For each feature d, train a separate regressor on synthetic and test on real
+    for d in range(D):
+        y_train = y_synth_all[:, d]   # synthetic targets
+        y_test  = y_real_all[:, d]    # real targets
+
+        # Simple linear model
+        model = LinearRegression()
+        model.fit(X_synth, y_train)
+
+        y_pred = model.predict(X_real)
+        mse_d = float(mean_squared_error(y_test, y_pred))
+        tstr_mse_per_feature.append(mse_d)
+
+    tstr_mse_mean = float(np.mean(tstr_mse_per_feature))
+
+    metrics = {
+        "tstr_mse_mean": tstr_mse_mean,
+        "tstr_mse_per_feature": tstr_mse_per_feature,
+        "tstr_model": "LinearRegression",
+        "tstr_input_type": "flattened_(L-1)*D_all_features",
+    }
+    return metrics
 
 def test_knn_novelty(real, synth):
     """
