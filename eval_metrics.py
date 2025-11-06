@@ -526,10 +526,10 @@ def run_evaluation(real_path: str, synth_path: str, out_dir: str, scenario_name:
 def main():
     base = "artifacts/"
     
-    real_train_path = "artifacts/baseline_v0/train_orig.npy"
-    real_val_path = "artifacts/baseline_v0/val_orig.npy"
-    real_test_path = "artifacts/baseline_v0/test_orig.npy"
-    synth_path = "artifacts/baseline_v0/synthetic_orig.npy"
+    real_train_path = "artifacts/baseline_v0/train_scaled.npy"
+    real_val_path = "artifacts/baseline_v0/val_scaled.npy"
+    real_test_path = "artifacts/baseline_v0/test_scaled.npy"
+    synth_path = "artifacts/baseline_v0/synthetic_scaled.npy"
 
     results_dir = base + "results"
     print(results_dir)
