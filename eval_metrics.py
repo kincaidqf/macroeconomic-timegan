@@ -536,10 +536,42 @@ def main():
 
     run_evaluation(
         real_path=real_train_path,
-        synth_path=real_val_path,
+        synth_path=synth_path,
         out_dir=results_dir,
-        scenario_name="real_vs_real_baseline"
+        scenario_name="real_vs_synth_baseline"
     )
+
+    # Some random testing code for discriminative score = 1 issue
+    """all_real = np.load("artifacts/baseline_v0/train_scaled.npy")
+    # optionally append val_scaled too:
+    # val_scaled = np.load("artifacts/baseline_v0/val_scaled.npy")
+    # all_real = np.concatenate([all_real, val_scaled], axis=0)
+
+    # random permutation
+    idx = np.random.permutation(all_real.shape[0])
+    half = all_real.shape[0] // 2
+    real_A = all_real[idx[:half]]
+    real_B = all_real[idx[half:]]
+
+    disc = test_discriminative(real_A, real_B)
+    print(disc)
+
+    print("train mean per feature:", real_A.mean(axis=(0,1)))
+    print("val   mean per feature:", real_B.mean(axis=(0,1)))
+    print("train std per feature :", real_A.std(axis=(0,1)))
+    print("val   std per feature :", real_B.std(axis=(0,1)))
+
+    train_scaled = np.load("artifacts/baseline_v0/train_scaled.npy")
+    synth_scaled   = np.load("artifacts/baseline_v0/synthetic_scaled.npy")
+
+    disc = test_discriminative(train_scaled, synth_scaled)
+    print(disc)
+
+    print("train mean per feature:", train_scaled.mean(axis=(0,1)))
+    print("val   mean per feature:", synth_scaled.mean(axis=(0,1)))
+    print("train std per feature :", train_scaled.std(axis=(0,1)))
+    print("val   std per feature :", synth_scaled.std(axis=(0,1)))"""
+
 
 
 if __name__ == "__main__":
