@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import Tuple, Dict
 from scipy.stats import ks_2samp, wasserstein_distance
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error
-from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import NearestNeighbors
+from sklearn.preprocessing import StandardScaler
 
 def load_data(real_path: str, synth_path: str, match_shapes: bool = True) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -407,7 +408,7 @@ def test_predictive(real, synth):
     }
     return metrics
 
-def test_knn_novelty(real, synth):
+def test_knn_novelty(real, synth, standardize: bool = True):
     """
     Novelty / coverage via nearest neighbors
 
@@ -425,7 +426,48 @@ def test_knn_novelty(real, synth):
         - knn_real_mean: float mean nearest neighbor distance from real to synthetic
         - knn_asymmetry: float |knn_synth_mean - knn_real_mean|
     """
-    pass
+    N_r, L, D = real.shape
+    N_s, _, _ = synth.shape
+
+    # Flatten windows: (N, L*D)
+    real_flat = real.reshape(N_r, L * D)
+    synth_flat = synth.reshape(N_s, L * D)
+
+    # Optionally standardize combined data so distances are more balanced across dimensions
+    if standardize:
+        scaler = StandardScaler()
+        combined = np.vstack([real_flat, synth_flat])
+        scaler.fit(combined)
+        real_flat = scaler.transform(real_flat)
+        synth_flat = scaler.transform(synth_flat)
+
+    # 1) Distances from synthetic to real
+    nn_real = NearestNeighbors(n_neighbors=1, metric="euclidean")
+    nn_real.fit(real_flat)
+    d_s2r, _ = nn_real.kneighbors(synth_flat)  # shape (N_s, 1)
+    d_s2r = d_s2r[:, 0]
+
+    # 2) Distances from real to synthetic
+    nn_synth = NearestNeighbors(n_neighbors=1, metric="euclidean")
+    nn_synth.fit(synth_flat)
+    d_r2s, _ = nn_synth.kneighbors(real_flat)  # shape (N_r, 1)
+    d_r2s = d_r2s[:, 0]
+
+    mean_s2r = float(np.mean(d_s2r))
+    mean_r2s = float(np.mean(d_r2s))
+    med_s2r = float(np.median(d_s2r))
+    med_r2s = float(np.median(d_r2s))
+
+    metrics = {
+        "knn_mean_synth_to_real": mean_s2r,
+        "knn_median_synth_to_real": med_s2r,
+        "knn_mean_real_to_synth": mean_r2s,
+        "knn_median_real_to_synth": med_r2s,
+        "knn_asymmetry_mean": float(mean_s2r - mean_r2s),
+        "knn_asymmetry_median": float(med_s2r - med_r2s),
+        "knn_standardized": bool(standardize),
+    }
+    return metrics
 
 
 def main():
