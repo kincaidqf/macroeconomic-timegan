@@ -490,9 +490,11 @@ def run_evaluation(real_path: str, synth_path: str, out_dir: str, scenario_name:
         Label for this experiment (e.g., "real_vs_real", "real_vs_synth_v0").
     """
     # Load and align shapes / counts
-    real, synth = load_data(real_path, synth_path, match_counts=True)
+    real, synth = load_data(real_path, synth_path, match_shapes=True)
 
     N, L, D = real.shape
+
+    print(f"Running evaluation for scenario '{scenario_name}':")
 
     # Collect all metrics into a single dict
     results = {
@@ -529,7 +531,8 @@ def main():
     real_test_path = "artifacts/baseline_v0/test_orig.npy"
     synth_path = "artifacts/baseline_v0/synthetic_orig.npy"
 
-    results_dir = base / "results"
+    results_dir = base + "results"
+    print(results_dir)
 
     run_evaluation(
         real_path=real_train_path,
@@ -539,8 +542,6 @@ def main():
     )
 
 
-
-    # Check for successful loading
-    # print(f"Loaded real data shape: {real.shape}")
-    # print(f"Loaded synthetic data shape: {synth.shape}")
+if __name__ == "__main__":
+    main()
 
