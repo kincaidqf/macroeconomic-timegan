@@ -106,7 +106,7 @@ def main():
 
         X_synth_orig = X_scaled_synth * rng + minv  # reverse scaling
 
-        out_dir = Path("artifacts/baseline_v0")
+        out_dir = Path("artifacts/baseline_v1")
         out_dir.mkdir(parents=True, exist_ok=True)
         
         np.save(out_dir / "synthetic_orig.npy", X_synth_orig)
