@@ -42,6 +42,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     # Hyperparameter to balance weightin of supervised loss and unsupervised loss
         # 1 = equal weighting, >1 = more weight on supervised loss, <1 = more weight on unsupervised loss
     gamma = float(params["gamma"])
+    print(gamma)
     # Latent space dimension, if None set to feature_dim
     z_dim = int(params["z_dim"] or feature_dim)
 
