@@ -5,5 +5,9 @@
   "batch_size": 64,
   "ae_warmup_it": 600,
   "gan_iters": 3000,
-  "gamma": 1.0
+  "gamma": 1.0,
+  "ae_loss": 0.002767,
+  "d_loss": 0.0001,
+  "g_loss": 0.0001,
+  "supervised_loss": 0.0004
 }
