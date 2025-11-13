@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from pathlib import Path
 from typing import Tuple, Dict
 import json
@@ -524,23 +525,58 @@ def run_evaluation(real_path: str, synth_path: str, out_dir: str, scenario_name:
 
 
 def main():
-    base = "artifacts/"
-    
-    real_train_path = "artifacts/baseline_v0/train_scaled.npy"
-    real_val_path = "artifacts/baseline_v0/val_scaled.npy"
-    real_test_path = "artifacts/baseline_v0/test_scaled.npy"
-    synth_path = "artifacts/baseline_v0/synthetic_scaled.npy"
+    """
+    Usage (MANDATORY):
+        python eval_metrics.py <version_number>
 
-    results_dir = base + "results"
-    print(results_dir)
+    Example:
+        python eval_metrics.py 1
+        → loads artifacts/baseline_v1/*.npy
+        → saves results → artifacts/baseline_v1/results/results_v1.json
+
+    This script WILL NOT RUN without a version argument.
+    """
+
+    if len(sys.argv) != 2:
+        print("\nERROR: You must supply a version number.\n"
+              "Usage: python eval_metrics.py <version_number>\n"
+              "Example: python eval_metrics.py 1\n")
+        sys.exit(1)
+
+    version_str = sys.argv[1]
+
+    try:
+        version = int(version_str)
+        assert version >= 0
+    except:
+        print(f"\nERROR: Version must be a non-negative integer. Got: {version_str}\n")
+        sys.exit(1)
+
+
+    base_dir = Path("artifacts") / f"baseline_v{version}"
+
+    real_train_path = base_dir / "train_scaled.npy"
+    synth_path      = base_dir / "synthetic_scaled.npy"
+    results_dir     = base_dir / "results"
+
+    scenario_name = f"results_v{version}"
+
+    if not real_train_path.exists():
+        print(f"\nERROR: Missing file: {real_train_path}\n")
+        sys.exit(1)
+
+    if not synth_path.exists():
+        print(f"\nERROR: Missing file: {synth_path}\n")
+        sys.exit(1)
 
     run_evaluation(
-        real_path=real_train_path,
-        synth_path=synth_path,
-        out_dir=results_dir,
-        scenario_name="real_vs_synth_baseline"
+        real_path=str(real_train_path),
+        synth_path=str(synth_path),
+        out_dir=str(results_dir),
+        scenario_name=scenario_name,
     )
 
+    print(f"\n Evaluation complete. Results saved to: {results_dir}/{scenario_name}.json\n")
 
 if __name__ == "__main__":
     main()
