@@ -1,0 +1,85 @@
+{
+  "scenario": "real_vs_real_baseline",
+  "real_path": "artifacts/baseline_v0/train_scaled.npy",
+  "synth_path": "artifacts/baseline_v0/val_scaled.npy",
+  "N": 31,
+  "L": 24,
+  "D": 4,
+  "ks_mean": 0.6108870967741935,
+  "ks_max": 0.875,
+  "ks_p_mean": 6.86405959136977e-25,
+  "wd_mean": 0.17426824813548436,
+  "wd_max": 0.34165036762433665,
+  "mean_abs_diff_mean": 0.17057660594582558,
+  "std_abs_diff_mean": 0.07300684228539467,
+  "ks_per_feature": [
+    0.2701612903225806,
+    0.875,
+    0.668010752688172,
+    0.6303763440860215
+  ],
+  "ks_p_per_feature": [
+    2.745623836547908e-24,
+    5.839165811883917e-297,
+    9.180999489833302e-158,
+    5.913272179202128e-139
+  ],
+  "wd_per_feature": [
+    0.0791397038847208,
+    0.34165036762433665,
+    0.19373546981362885,
+    0.08254745121925107
+  ],
+  "mean_diff_per_feature": [
+    0.07907326519489288,
+    -0.3416503667831421,
+    0.17903536558151245,
+    -0.08254742622375488
+  ],
+  "std_diff_per_feature": [
+    0.09919635206460953,
+    -0.07822667062282562,
+    0.09831569343805313,
+    0.016288653016090393
+  ],
+  "corr_frobenius_diff": 1.4379880505384992,
+  "corr_max_abs_diff": 0.59428810262887,
+  "corr_mae": 0.2731042012075837,
+  "corr_method": "pearson",
+  "acf_rmse": 0.17369652719618137,
+  "acf_rmse_per_feature": [
+    0.10906572544258332,
+    0.18405548024075177,
+    0.18533624664751638,
+    0.21632865645387403
+  ],
+  "acf_lags": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "disc_auc": 1.0,
+  "disc_acc": 1.0,
+  "disc_test_size": 0.3,
+  "tstr_mse_mean": 0.03689500247128308,
+  "tstr_mse_per_feature": [
+    0.005904765799641609,
+    0.045042913407087326,
+    0.014341390691697598,
+    0.08229093998670578
+  ],
+  "tstr_model": "LinearRegression",
+  "tstr_input_type": "flattened_(L-1)*D_all_features",
+  "knn_mean_synth_to_real": 14.361944321663149,
+  "knn_median_synth_to_real": 13.748818397521973,
+  "knn_mean_real_to_synth": 14.04356602699526,
+  "knn_median_real_to_synth": 13.724645614624023,
+  "knn_asymmetry_mean": 0.31837829466788925,
+  "knn_asymmetry_median": 0.02417278289794922,
+  "knn_standardized": true
+}
