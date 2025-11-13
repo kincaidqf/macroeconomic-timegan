@@ -541,7 +541,11 @@ def main():
         scenario_name="real_vs_synth_baseline"
     )
 
-    # Some random testing code for discriminative score = 1 issue
+
+if __name__ == "__main__":
+    main()
+
+# Some random testing code for discriminative score = 1 issue
     """all_real = np.load("artifacts/baseline_v0/train_scaled.npy")
     # optionally append val_scaled too:
     # val_scaled = np.load("artifacts/baseline_v0/val_scaled.npy")
@@ -571,9 +575,3 @@ def main():
     print("val   mean per feature:", synth_scaled.mean(axis=(0,1)))
     print("train std per feature :", train_scaled.std(axis=(0,1)))
     print("val   std per feature :", synth_scaled.std(axis=(0,1)))"""
-
-
-
-if __name__ == "__main__":
-    main()
-
