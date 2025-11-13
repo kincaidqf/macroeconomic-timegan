@@ -45,7 +45,7 @@ def main():
     # 3) Train
     batch_size   = 64
     ae_warmup_it = 600     # 300–1000 is typical; increase if recon not improving
-    gan_iters    = 3000    # tune as needed (2k–10k); watch losses
+    gan_iters    = 2000    # tune as needed (2k–10k); watch losses
 
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
