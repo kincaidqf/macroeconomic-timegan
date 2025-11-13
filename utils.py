@@ -166,7 +166,7 @@ DEFAULT_PARAMS: Dict = {
     "iterations": 10000,        # default 10k like in original repository
     "batch_size": 64,
     "learning_rate": 1e-3,
-    "gamma": 1.0,
+    "gamma": 5.0,
     "z_dim": None,              # if None, we set z_dim = feature_dim
     "print_every": 200,
 }
