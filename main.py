@@ -9,7 +9,7 @@ from utils import sample_batch
 
 tf.compat.v1.disable_eager_execution()
 
-def main():
+def main(version):
     # 1) Load and summarize data
     train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
         data_dir=Path("data/clean"),  # adjust if needed
@@ -106,7 +106,9 @@ def main():
 
         X_synth_orig = X_scaled_synth * rng + minv  # reverse scaling
 
-        out_dir = Path("artifacts/baseline_v1")
+        path = "artifacts/baseline_v{}".format(version)
+
+        out_dir = Path(path)
         out_dir.mkdir(parents=True, exist_ok=True)
         
         np.save(out_dir / "synthetic_orig.npy", X_synth_orig)
@@ -259,4 +261,5 @@ def params_test():
 
 
 if __name__ == "__main__":
-    main()
+    version = input("Running main - input version number and press Enter: ")
+    main(version)
