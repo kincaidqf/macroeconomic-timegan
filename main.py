@@ -293,5 +293,11 @@ if __name__ == "__main__":
             "iterations": 2000,
             "batch_size": 64,
         }
+    elif version == 2:
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+        }
     
     main(version, overrides=overrides)
