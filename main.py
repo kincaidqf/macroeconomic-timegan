@@ -288,16 +288,26 @@ if __name__ == "__main__":
             "batch_size": 64,
         }
     elif version == 1:
+        # reducing iterations to reduce overfitting observed in v0
         overrides = {
             "gamma": 1,
             "iterations": 2000,
             "batch_size": 64,
         }
     elif version == 2:
+        # increase gamma to further reduce overfitting
         overrides = {
             "gamma": 5.0,
             "iterations": 2000,
             "batch_size": 64,
+        }
+    elif version == 3:
+        # increase AE warmup iterations
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
         }
     
     main(version, overrides=overrides)
