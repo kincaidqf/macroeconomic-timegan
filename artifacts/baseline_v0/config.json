@@ -9,5 +9,10 @@
   "learning_rate": 0.001,
   "module": "gru",
   "hidden_dim": 24,
-  "num_layers": 2
+  "num_layers": 2,
+  "ae_loss": 0.002664,
+  "d_loss": 0.0000,
+  "g_loss": 0.0004,
+  "s_loss": 0.0003
+
 }
