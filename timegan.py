@@ -18,12 +18,9 @@ Original TimeGAN implementation used TF1-style sessions.
 TF2 eager execution instantly runs operations, would be difficult to adapt og implementation to TF2
 """
 
-def timegan(train_set: List[np.ndarray], parameters: Dict = None):
+def timegan(train_set: List[np.ndarray], parameters: Dict):
     # Placeholder for TimeGAN implementation
-    set_random_seed(42)
-    params = dict(DEFAULT_PARAMS)
-    if parameters:
-        params.update(parameters)
+    params = parameters
 
     # Length of each window (number of time steps) and feature dimension (number of features)
     seq_len, feature_dim = infer_dims(train_set)
@@ -33,16 +30,13 @@ def timegan(train_set: List[np.ndarray], parameters: Dict = None):
     num_layers = int(params["num_layers"])
     # Type of RNN cell to use (gru or lstm)
     module = str(params["module"]).lower()
-    # Number of parameter update steps
-    iterations = int(params["iterations"])
-    # Number of (L x D) windows in each batch
-    batch_size = int(params["batch_size"])
     # Learning rate, adaptive based on Adam optimizer
     lr = float(params["learning_rate"])
     # Hyperparameter to balance weightin of supervised loss and unsupervised loss
         # 1 = equal weighting, >1 = more weight on supervised loss, <1 = more weight on unsupervised loss
     gamma = float(params["gamma"])
-    print(gamma)
+    print("gamma = ", gamma)
+
     # Latent space dimension, if None set to feature_dim
     z_dim = int(params["z_dim"] or feature_dim)
 

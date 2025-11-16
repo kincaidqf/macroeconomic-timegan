@@ -2,14 +2,20 @@ from pathlib import Path
 import numpy as np
 import tensorflow as tf
 import json
+import sys
 
 from prep_windows import prepare_windows
 from timegan import timegan
-from utils import sample_batch
+from utils import sample_batch, DEFAULT_PARAMS
 
 tf.compat.v1.disable_eager_execution()
 
-def main(version):
+def main(version, overrides=None):
+    params = dict(DEFAULT_PARAMS)
+
+    if overrides:
+        params.update(overrides)
+
     # 1) Load and summarize data
     train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
         data_dir=Path("data/clean"),  # adjust if needed
@@ -19,12 +25,26 @@ def main(version):
         test_countries=["Country8", "Country9"],
     )
     print("Loaded:", summary["counts"])
+
     L = summary["shapes"]["window_length"]
     D = summary["shapes"]["feature_count"]
     z_dim = D  # we set z_dim = feature_dim in timegan
 
     # 2) Build graph
-    handles = timegan(train_scaled, parameters=None)
+    handles = timegan(
+        train_scaled, 
+        parameters=params
+    )
+
+    batch_size = int(params["batch_size"])
+    ae_warmup_it = int(params.get("ae_warmup_it", 600))
+    gan_iters = int(params["iterations"])
+
+    print("Training with:")
+    print("  gamma      =", params["gamma"])
+    print("  batch_size =", batch_size)
+    print("  ae_warmup  =", ae_warmup_it)
+    print("  gan_iters  =", gan_iters)
 
     X_ph = handles["placeholders"]["X"]
     Z_ph = handles["placeholders"]["Z"]
@@ -41,11 +61,6 @@ def main(version):
     g_op      = handles["train_ops"]["g"]
 
     X_hat_t   = handles["tensors"]["X_hat"]
-
-    # 3) Train
-    batch_size   = 64
-    ae_warmup_it = 600     # 300–1000 is typical; increase if recon not improving
-    gan_iters    = 2000    # tune as needed (2k–10k); watch losses
 
     with tf.compat.v1.Session() as sess:
         sess.run(tf.compat.v1.global_variables_initializer())
@@ -139,9 +154,12 @@ def main(version):
             "batch_size": batch_size,
             "ae_warmup_it": ae_warmup_it,
             "gan_iters": gan_iters,
-            "gamma": 1.0
+            "gamma": float(params["gamma"]),
+            "learning_rate": float(params["learning_rate"]),
+            "module": params["module"],
+            "hidden_dim": int(params["hidden_dim"]),
+            "num_layers": int(params["num_layers"]),
         }
-
         (out_dir / "config.json").write_text(json.dumps(cfg, indent=2))
 
         print("Synthetic (scaled) min/max:", float(X_scaled_synth.min()), float(X_scaled_synth.max()))
@@ -261,5 +279,13 @@ def params_test():
 
 
 if __name__ == "__main__":
-    version = input("Running main - input version number and press Enter: ")
-    main(version)
+    version = int(sys.argv[1])
+
+    if version == 0:
+        overrides = {
+            "gamma": 1.0,
+            "iterations": 3000,
+            "batch_size": 64,
+        }
+    
+    main(version, overrides=overrides)
