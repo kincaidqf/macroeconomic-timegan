@@ -163,10 +163,10 @@ DEFAULT_PARAMS: Dict = {
     "hidden_dim": 24,
     "num_layers": 2,
     "module": "gru",            # 'gru' or 'lstm'
-    "iterations": 10000,        # default 10k like in original repository
+    "iterations": 1000,        
     "batch_size": 64,
     "learning_rate": 1e-3,
-    "gamma": 5.0,
+    "gamma": 1.0,
     "z_dim": None,              # if None, we set z_dim = feature_dim
     "print_every": 200,
 }
