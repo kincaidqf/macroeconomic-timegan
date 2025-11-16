@@ -1,0 +1,17 @@
+{
+  "L": 24,
+  "D": 4,
+  "z_dim": 4,
+  "batch_size": 64,
+  "ae_warmup_it": 600,
+  "gan_iters": 2000,
+  "gamma": 5.0,
+  "learning_rate": 0.001,
+  "module": "gru",
+  "hidden_dim": 24,
+  "num_layers": 2,
+  "ae_loss": 0.002358,
+  "d_loss": 0.0001,
+  "g_loss": 0.0026,
+  "s_loss": 0.0005
+}
