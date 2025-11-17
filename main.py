@@ -328,7 +328,7 @@ if __name__ == "__main__":
             "learning_rate": 1e-4
         }
     elif version == 6:
-        # parameters the same as 4, but added label smoothing to discriminator in timegan.py
+        # parameters the same as v4, but added label smoothing to discriminator in timegan.py
         overrides = {
             "gamma": 5.0,
             "iterations": 2000,
