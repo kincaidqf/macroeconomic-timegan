@@ -354,5 +354,15 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
+    elif version == 9:
+        # trying lstm instead of gru rnn cells
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm"
+        }
     
     main(version, overrides=overrides)
