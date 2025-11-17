@@ -148,8 +148,12 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         """
 
         with tf.compat.v1.variable_scope("discriminator", reuse=tf.compat.v1.AUTO_REUSE):
+            # Adding some noise
+            noise_std = 0.05 # Standard deviation of Gaussian noise
+            H_noisy = H_in + tf.random.normal(tf.shape(H_in), stddev=noise_std)
+
             # 1) Stacked RNN over timesteps
-            d_outputs = stacked_rnn(H_in, hidden_dim, num_layers, module, scope="discriminator_rnn")
+            d_outputs = stacked_rnn(H_noisy, hidden_dim, num_layers, module, scope="discriminator_rnn")
 
             # 2) Sequence summary: take last timestep's hidden state
             last = d_outputs[:, -1, :]  # (batch, hidden_dim)
