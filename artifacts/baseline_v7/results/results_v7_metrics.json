@@ -1,0 +1,85 @@
+{
+  "scenario": "results_v7",
+  "real_path": "artifacts/baseline_v7/train_scaled.npy",
+  "synth_path": "artifacts/baseline_v7/synthetic_scaled.npy",
+  "N": 155,
+  "L": 24,
+  "D": 4,
+  "ks_mean": 0.7274865591397849,
+  "ks_max": 0.9766129032258064,
+  "ks_p_mean": 0.0,
+  "wd_mean": 0.21124244431003691,
+  "wd_max": 0.40762884288986223,
+  "mean_abs_diff_mean": 0.16506217420101166,
+  "std_abs_diff_mean": 0.1296798624098301,
+  "ks_per_feature": [
+    0.9766129032258064,
+    0.5567204301075269,
+    0.8491935483870968,
+    0.5274193548387097
+  ],
+  "ks_p_per_feature": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "wd_per_feature": [
+    0.40762884288986223,
+    0.2036706272352447,
+    0.15059858773264195,
+    0.08307171938239888
+  ],
+  "mean_diff_per_feature": [
+    0.4060361981391907,
+    -0.10062998533248901,
+    -0.12673771381378174,
+    0.026844799518585205
+  ],
+  "std_diff_per_feature": [
+    -0.0950622707605362,
+    -0.21478769183158875,
+    -0.12028225511312485,
+    -0.08858723193407059
+  ],
+  "corr_frobenius_diff": 3.5636194726898225,
+  "corr_max_abs_diff": 1.2409663222086076,
+  "corr_mae": 0.7631846106986171,
+  "corr_method": "pearson",
+  "acf_rmse": 0.2182435764453243,
+  "acf_rmse_per_feature": [
+    0.20288626933276463,
+    0.11534971328136061,
+    0.41927959698336503,
+    0.13545872618380694
+  ],
+  "acf_lags": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "disc_auc": 1.0,
+  "disc_acc": 1.0,
+  "disc_test_size": 0.3,
+  "tstr_mse_mean": 1.0865657702088356,
+  "tstr_mse_per_feature": [
+    0.6103808283805847,
+    1.1253496408462524,
+    2.1839537620544434,
+    0.4265788495540619
+  ],
+  "tstr_model": "LinearRegression",
+  "tstr_input_type": "flattened_(L-1)*D_all_features",
+  "knn_mean_synth_to_real": 13.132549279735935,
+  "knn_median_synth_to_real": 13.132479667663574,
+  "knn_mean_real_to_synth": 15.992495936732139,
+  "knn_median_real_to_synth": 16.285369873046875,
+  "knn_asymmetry_mean": -2.859946656996204,
+  "knn_asymmetry_median": -3.152890205383301,
+  "knn_standardized": true
+}
