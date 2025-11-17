@@ -219,16 +219,20 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         tf.square(H_real[:, 1:, :] - H_hat[:, :-1, :]),
         name="supervised_loss"
     )
+
+    # Test - adding label smoothing to discriminator loss
+    real_labels = 0.9 * tf.ones_like(logits_real)
+    fake_labels = tf.zeros_like(logits_fake)
     
     # Discriminator loss: BCE with logits 
     d_loss_real = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=logits_real, labels=tf.ones_like(logits_real)
+            logits=logits_real, labels=real_labels
         )
     )
     d_loss_fake = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=logits_fake, labels=tf.ones_like(logits_fake)
+            logits=logits_fake, labels=fake_labels
         )
     )
     d_loss = tf.identity(d_loss_real + d_loss_fake, name="d_loss")
