@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 import json
 import sys
+import argparse
 
 from prep_windows import prepare_windows
 from timegan import timegan
@@ -279,8 +280,15 @@ def params_test():
     """
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("version", help="Version number (e.g., 0, 1, 2, or 'g1')")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    version = int(sys.argv[1])
+    args = parse_args()
+    version = args.version
 
     if version == 0:
         overrides = {
