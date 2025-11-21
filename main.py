@@ -28,7 +28,7 @@ def main(version, overrides=None):
 
     L = summary["shapes"]["window_length"]
     D = summary["shapes"]["feature_count"]
-    z_dim = D
+    z_dim = int(params.get("z_dim", D))  # you can set z_dim in params, else default to D
 
     # 2) Build graph
     handles = timegan(
@@ -104,9 +104,10 @@ def main(version, overrides=None):
 
         N = len(train_scaled)
 
+        """ commented out, causing error in z_dim assignment
         L = summary["shapes"]["window_length"]
         D = summary["shapes"]["feature_count"]
-        z_dim = D  # we set z_dim = feature_dim in timegan  
+        z_dim = D  # we set z_dim = feature_dim in timegan  """
 
         np.random.seed(42)
 
@@ -373,6 +374,61 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4,
             "module": "lstm"
+        }
+    elif version == 11:
+        # changed noise structure fed into discriminator in timegan.py, changes removed, version not kept
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm"
+        }
+    elif version == 12:
+        # changed discriminator noise std from 0.02 to 0.04 in timegan.py, change removed, version not kept
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm"
+        }
+    elif version == 13:
+        # changed z_dim to 16 from 4 in main.py
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm",
+            "z_dim": 16
+        }
+    elif version == 14:
+        # increased number of hidden dimensions to 32 from 24
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm",
+            "z_dim": 16,
+            "hidden_dim": 32
+        }
+    elif version == 15:
+        # changed discriminator noise to 0.05 in timegan.py
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm",
+            "z_dim": 16,
+            "hidden_dim": 32
         }
     
     main(version, overrides=overrides)
