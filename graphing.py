@@ -106,6 +106,76 @@ def plot_scatter_cloud(
     plt.close()
 
 
+def plot_time_series_feature(
+    train: np.ndarray,
+    synth: np.ndarray,
+    feature_idx: int,
+    feature_name: str,
+    version: int,
+    base_dir: Path,
+    n_samples: int = 15,
+):
+    """
+    Plot a time-series comparison for a single feature:
+
+    - x-axis: time step in window (0 .. L-1)
+    - y-axis: chosen feature (e.g., GDP growth, unemployment)
+    - Real (train) windows: many faint lines
+    - Synthetic windows: darker overlay lines
+
+    Inputs:
+        train: (N, L, D) real windows (scaled or original)
+        synth: (N, L, D) synthetic windows
+        feature_idx: which feature to plot on y-axis
+        feature_name: label for y-axis
+        version: version number (for title / filename)
+        base_dir: Path to artifacts/baseline_vX
+        n_samples: how many windows to plot from each set
+    """
+    N_t, L, D = train.shape
+    N_s, L_s, D_s = synth.shape
+
+    assert L == L_s, "Train and synthetic must have same window length"
+
+    # Choose random windows (or truncate if N is small)
+    n_real = min(n_samples, N_t)
+    n_synth = min(n_samples, N_s)
+
+    rng = np.random.default_rng(42)  # fixed so plots are reproducible
+    real_indices = rng.choice(N_t, size=n_real, replace=False)
+    synth_indices = rng.choice(N_s, size=n_synth, replace=False)
+
+    t = np.arange(L)  # 0..L-1 time steps
+
+    plt.figure(figsize=(7, 4))
+
+    # Plot real windows as faint lines
+    for idx in real_indices:
+        y = train[idx, :, feature_idx]
+        plt.plot(t, y, color="tab:blue", alpha=0.15, linewidth=1)
+
+    # Plot synthetic windows as darker lines
+    for idx in synth_indices:
+        y = synth[idx, :, feature_idx]
+        plt.plot(t, y, color="black", alpha=0.8, linewidth=1.2)
+
+    plt.xlabel("Time step within window")
+    plt.ylabel(feature_name)
+    plt.title(f"{feature_name} vs Time (v{version})")
+    legend_handles = [
+        plt.Line2D([0], [0], color="tab:blue", alpha=0.6, label="Real (train)"),
+        plt.Line2D([0], [0], color="black", alpha=0.8, label="Synthetic"),
+    ]
+    plt.legend(handles=legend_handles, loc="best")
+
+    plt.tight_layout()
+
+    out_path = base_dir / f"{feature_name.lower().replace(' ', '_')}_vs_time_v{version}.png"
+    plt.savefig(out_path, dpi=300)
+    print(f"Saved {feature_name} time-series figure to {out_path.resolve()}")
+    plt.close()
+
+
 def load_data(base_dir: Path):
     """
     Load training and synthetic data for a given version.
@@ -149,6 +219,33 @@ def main():
     # We'll fill these in next:
     train, synth = load_data(base_dir)
     plot_scatter_cloud(train, synth, version, base_dir)
+
+    # Feature indices (adjust if needed)
+    # Assuming feature order: [Inflation, Unemployment, GDP Growth, Population Growth]
+    GDP_IDX = 2
+    UNEMP_IDX = 1
+
+    # GDP vs time
+    plot_time_series_feature(
+        train=train,
+        synth=synth,
+        feature_idx=GDP_IDX,
+        feature_name="GDP Growth",
+        version=version,
+        base_dir=base_dir,
+        n_samples=15,
+    )
+
+    # Unemployment vs time
+    plot_time_series_feature(
+        train=train,
+        synth=synth,
+        feature_idx=UNEMP_IDX,
+        feature_name="Unemployment",
+        version=version,
+        base_dir=base_dir,
+        n_samples=15,
+    )
 
 
 if __name__ == "__main__":
