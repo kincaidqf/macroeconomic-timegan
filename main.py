@@ -5,7 +5,7 @@ import json
 import sys
 import argparse
 
-from prep_windows import prepare_windows
+from prep_windows import prepare_windows, prepare_windows_global
 from timegan import timegan
 from utils import sample_batch, DEFAULT_PARAMS
 
@@ -17,14 +17,28 @@ def main(version, overrides=None):
     if overrides:
         params.update(overrides)
 
-    # 1) Load and summarize data
-    train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
-        data_dir=Path("data/clean"),  # adjust if needed
-        L=24,
-        stride=1,
-        val_countries=["Country7"],
-        test_countries=["Country8", "Country9"],
-    )
+    # Load and summarize data
+    if version.startswith("g"):  # e.g. 'g1'
+        print(f"[Mode] Global dataset mode for version {version}")
+        train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows_global(
+            data_dir=Path("data/clean_global"),
+            L=24,
+            stride=1,
+        )
+        out_base = f"artifacts/global_v{version[1:]}"  # e.g. 'artifacts/global_v1'
+    else:
+        # existing behavior for integer versions (baseline_vX)
+        v_int = int(version)
+        print(f"[Mode] Baseline 9-country mode for version {v_int}")
+        train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows(
+            data_dir=Path("data/clean"),
+            L=24,
+            stride=1,
+            val_countries=["Country7"],
+            test_countries=["Country8", "Country9"],
+        )
+        out_base = f"artifacts/baseline_v{v_int}"
+
     print("Loaded:", summary["counts"])
 
     L = summary["shapes"]["window_length"]
@@ -147,7 +161,13 @@ def main(version, overrides=None):
         
         np.save(out_dir / "train_scaled.npy", train_scaled_arr)
         np.save(out_dir / "test_scaled.npy", test_scaled_arr)
-        np.save(out_dir / "val_scaled.npy", val_scaled_arr)
+        
+        if val_scaled:
+            # save val/test only in baseline mode
+            val_scaled_arr = np.stack(val_scaled, axis=0).astype(np.float32)
+            test_scaled_arr = np.stack(test_scaled, axis=0).astype(np.float32)
+            np.save(out_dir / "val_scaled.npy", val_scaled_arr)
+            np.save(out_dir / "test_scaled.npy", test_scaled_arr)
 
         cfg = {
             "L": L,
