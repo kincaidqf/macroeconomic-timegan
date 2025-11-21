@@ -28,7 +28,7 @@ def main(version, overrides=None):
 
     L = summary["shapes"]["window_length"]
     D = summary["shapes"]["feature_count"]
-    z_dim = D  # we set z_dim = feature_dim in timegan
+    z_dim = D
 
     # 2) Build graph
     handles = timegan(
@@ -106,7 +106,7 @@ def main(version, overrides=None):
 
         L = summary["shapes"]["window_length"]
         D = summary["shapes"]["feature_count"]
-        z_dim = D * 2  # we set z_dim = feature_dim in timegan  
+        z_dim = D  # we set z_dim = feature_dim in timegan  
 
         np.random.seed(42)
 
@@ -363,15 +363,6 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4,
             "module": "lstm"
-        }
-    elif version == 10:
-        # switching to z_dim = D * 2 in main.py, back to gru cells
-        overrides = {
-            "gamma": 5.0,
-            "iterations": 2000,
-            "batch_size": 64,
-            "ae_warmup_it": 1000,
-            "learning_rate": 1e-4
         }
     
     main(version, overrides=overrides)
