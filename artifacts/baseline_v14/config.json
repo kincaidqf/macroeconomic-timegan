@@ -1,0 +1,13 @@
+{
+  "L": 24,
+  "D": 4,
+  "z_dim": 16,
+  "batch_size": 64,
+  "ae_warmup_it": 1000,
+  "gan_iters": 2000,
+  "gamma": 5.0,
+  "learning_rate": 0.0001,
+  "module": "lstm",
+  "hidden_dim": 32,
+  "num_layers": 2
+}
