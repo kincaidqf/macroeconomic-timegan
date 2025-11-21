@@ -58,6 +58,16 @@ def plot_scatter_cloud(
     x_synth = synth_flat[:, feature_x]
     y_synth = synth_flat[:, feature_y]
 
+    # Clip values depending on which features are plotted
+    
+    if feature_y:
+        y_train = np.clip(y_train, -2, 6)
+        y_synth = np.clip(y_synth, -2, 6)
+
+    if feature_x:
+        x_train = np.clip(x_train, 3, 10)
+        x_synth = np.clip(x_synth, 3, 10)
+
     # Start a new figure
     plt.figure(figsize=(6, 6))
 
