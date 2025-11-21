@@ -364,5 +364,15 @@ if __name__ == "__main__":
             "learning_rate": 1e-4,
             "module": "lstm"
         }
+    elif version == 10:
+        # ae_loss halved in timegan.py
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm"
+        }
     
     main(version, overrides=overrides)

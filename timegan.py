@@ -216,7 +216,7 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
 
     # LOSS FUNCTIONS
     # Reconstruction loss on autoencoder (MSE)
-    ae_loss = tf.reduce_mean(tf.square(X_ph - X_hat), name="ae_loss")
+    ae_loss = 0.5 * tf.reduce_mean(tf.square(X_ph - X_hat), name="ae_loss")
     
     # Shifted MSE (supervised loss): H_real[:, 1:, :] vs H_hat[:, :-1, :]
     sup_loss = tf.reduce_mean(
