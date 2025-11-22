@@ -20,6 +20,8 @@ import argparse
 import numpy as np
 import pandas as pd
 
+from sklearn.preprocessing import MinMaxScaler
+
 FEATURES = ["Inflation", "Unemployment", "GDP Growth", "Population Growth"]
 
 def load_country_series(folder: Path) -> Dict[str, pd.DataFrame]:
@@ -174,6 +176,130 @@ def prepare_windows(data_dir: Path,
     }
 
     return train_scaled, val_scaled, test_scaled, (minv, rangev), summary
+
+
+def prepare_windows_global(
+    data_dir: Path = Path("data/clean_g2"),
+    L: int = 24,
+    stride: int = 1,
+) -> Tuple[
+    List[np.ndarray],
+    List[np.ndarray],
+    List[np.ndarray],
+    Tuple[np.ndarray, np.ndarray],
+    Dict,
+]:
+    """
+    Prepare sliding windows from ALL countries in the new 'g2' dataset.
+
+    - Reads per-country CSVs from data_dir (e.g., data/clean_g2/Country1.csv, ...).
+    - Each CSV is expected to have columns:
+        Year,
+        GDP per capita growth,
+        Govt consumption,
+        Unemployment,
+        Inflation,
+        Mortality rate
+    - Builds length-L sliding windows with given stride.
+    - Uses *all* windows for training; val/test are empty.
+
+    Returns:
+        train_scaled : list of (L, D) float32 arrays (all windows, scaled to [-1, 1])
+        val_scaled   : [] (empty list)
+        test_scaled  : [] (empty list)
+        (minv, rng)  : tuple of (data_min_, data_range_) from MinMaxScaler in original units
+        summary      : dict with counts and shapes
+    """
+    data_dir = Path(data_dir)
+
+    # 1) Load all Country*.csv files
+    country_files = sorted(data_dir.glob("Country*.csv"))
+    if not country_files:
+        raise FileNotFoundError(f"No Country*.csv files found in {data_dir}")
+
+    feature_cols = [
+        "GDP per capita growth",
+        "Govt consumption",
+        "Unemployment",
+        "Inflation",
+        "Mortality rate",
+    ]
+
+    all_series = []  # list of (T, D) arrays
+
+    for path in country_files:
+        df = pd.read_csv(path)
+
+        # Ensure required columns exist
+        df = pd.read_csv(path)
+
+        missing = [c for c in feature_cols + ["Year"] if c not in df.columns]
+        if missing:
+            raise ValueError(f"{path} is missing columns: {missing}")
+
+        # Drop rows where ANY feature is NaN  (stricter than before)
+        df = df.dropna(how="any", subset=feature_cols)
+
+        # Sort by Year
+        df = df.sort_values("Year")
+
+        # Extract features as numeric numpy array
+        values = df[feature_cols].to_numpy(dtype="float32")
+
+        # Skip if not enough clean timesteps
+        if values.shape[0] < L:
+            continue
+
+        all_series.append(values)
+
+    if not all_series:
+        raise ValueError(f"No series with length >= {L} found in {data_dir}")
+
+    # 2) Build sliding windows for all countries
+    windows = []  # list of (L, D)
+    for arr in all_series:
+        T, D = arr.shape
+        for start in range(0, T - L + 1, stride):
+            windows.append(arr[start : start + L, :])
+
+    if not windows:
+        raise ValueError("No windows created. Check L and stride.")
+
+    windows = np.stack(windows, axis=0)  # (N, L, D)
+    N, L_check, D = windows.shape
+
+    # 3) Fit MinMaxScaler on all windows (flatten across N and L)
+    flat = windows.reshape(-1, D)  # (N*L, D)
+    scaler = MinMaxScaler(feature_range=(-1.0, 1.0))
+    scaler.fit(flat)
+
+    flat_scaled = scaler.transform(flat)
+    windows_scaled = flat_scaled.reshape(N, L_check, D).astype("float32")
+
+    # Convert to list-of-arrays to stay consistent with existing code
+    train_scaled = [w for w in windows_scaled]
+    val_scaled: List[np.ndarray] = []
+    test_scaled: List[np.ndarray] = []
+
+    # Original-scale min and range (for inverse scaling)
+    minv = scaler.data_min_.astype("float32")
+    maxv = scaler.data_max_.astype("float32")
+    rng = (maxv - minv).astype("float32")
+
+    summary = {
+        "counts": {
+            "train_windows": int(N),
+            "val_windows": 0,
+            "test_windows": 0,
+        },
+        "shapes": {
+            "window_length": int(L_check),
+            "feature_count": int(D),
+        },
+        "features": feature_cols,
+    }
+
+    return train_scaled, val_scaled, test_scaled, (minv, rng), summary
 
 
 def main():
