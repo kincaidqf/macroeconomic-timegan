@@ -21,11 +21,12 @@ def main(version, overrides=None):
     if version.startswith("g"):  # e.g. 'g1'
         print(f"[Mode] Global dataset mode for version {version}")
         train_scaled, val_scaled, test_scaled, (minv, rng), summary = prepare_windows_global(
-            data_dir=Path("data/clean_global"),
+            data_dir=Path("datag2/clean_g2"),
             L=24,
             stride=1,
         )
-        out_base = f"artifacts/global_v{version[1:]}"  # e.g. 'artifacts/global_v1'
+        out_dir = Path(f"artifacts/global_v{version[1:]}")
+        out_dir.mkdir(parents=True, exist_ok=True)
     else:
         # existing behavior for integer versions (baseline_vX)
         v_int = int(version)
@@ -147,20 +148,19 @@ def main(version, overrides=None):
 
         # Stack windows into 3D arrays (N, L, D)
         train_orig = np.stack(train_scaled, axis=0) * rng + minv
-        test_orig = np.stack(test_scaled, axis=0) * rng + minv
-        val_orig = np.stack(val_scaled, axis=0) * rng + minv
+
+        if test_scaled:
+            test_orig = np.stack(test_scaled, axis=0) * rng + minv
+            val_orig = np.stack(val_scaled, axis=0) * rng + minv
+            np.save(out_dir / "test_orig.npy", test_orig)
+            np.save(out_dir / "val_orig.npy", val_orig)
         
         np.save(out_dir / "train_orig.npy", train_orig)
-        np.save(out_dir / "test_orig.npy", test_orig)
-        np.save(out_dir / "val_orig.npy", val_orig)
 
         # Stack windows into 3D arrays (N, L, D)
         train_scaled_arr = np.stack(train_scaled, axis=0).astype(np.float32)
-        test_scaled_arr = np.stack(test_scaled, axis=0).astype(np.float32)
-        val_scaled_arr = np.stack(val_scaled, axis=0).astype(np.float32)
         
         np.save(out_dir / "train_scaled.npy", train_scaled_arr)
-        np.save(out_dir / "test_scaled.npy", test_scaled_arr)
         
         if val_scaled:
             # save val/test only in baseline mode
@@ -458,5 +458,16 @@ if __name__ == "__main__":
             "z_dim": 16,
             "hidden_dim": 32
         }
-    
+    elif version == "g2":
+        # global dataset mode, discriminator noise 0.02
+        overrides = {
+            "gamma": 5.0,
+            "iterations": 2000,
+            "batch_size": 64,
+            "ae_warmup_it": 1000,
+            "learning_rate": 1e-4,
+            "module": "lstm",
+            "z_dim": 16,
+            "hidden_dim": 32
+        }
     main(version, overrides=overrides)
