@@ -11,7 +11,7 @@ def parse_args():
     )
     parser.add_argument(
         "version",
-        type=int,
+        type=str,
         help="Version number (e.g. 0, 1, 8, 9) corresponding to artifacts/baseline_vX",
     )
     return parser.parse_args()
@@ -20,7 +20,7 @@ def parse_args():
 def plot_scatter_cloud(
     train: np.ndarray,
     synth: np.ndarray,
-    version: int,
+    version: str,
     base_dir: Path,
     feature_x: int = 1,
     feature_y: int = 2,
