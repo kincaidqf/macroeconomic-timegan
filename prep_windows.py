@@ -212,7 +212,7 @@ def prepare_windows_global(
     """
     data_dir = Path(data_dir)
 
-    # 1) Load all Country*.csv files
+    # Load all Country*.csv files
     country_files = sorted(data_dir.glob("Country*.csv"))
     if not country_files:
         raise FileNotFoundError(f"No Country*.csv files found in {data_dir}")
@@ -237,7 +237,7 @@ def prepare_windows_global(
         if missing:
             raise ValueError(f"{path} is missing columns: {missing}")
 
-        # Drop rows where ANY feature is NaN  (stricter than before)
+        # Drop rows where ANY feature is NaN
         df = df.dropna(how="any", subset=feature_cols)
 
         # Sort by Year
@@ -255,7 +255,7 @@ def prepare_windows_global(
     if not all_series:
         raise ValueError(f"No series with length >= {L} found in {data_dir}")
 
-    # 2) Build sliding windows for all countries
+    # Build sliding windows for all countries
     windows = []  # list of (L, D)
     for arr in all_series:
         T, D = arr.shape
@@ -268,7 +268,7 @@ def prepare_windows_global(
     windows = np.stack(windows, axis=0)  # (N, L, D)
     N, L_check, D = windows.shape
 
-    # 3) Fit MinMaxScaler on all windows (flatten across N and L)
+    # Fit MinMaxScaler on all windows (flatten across N and L)
     flat = windows.reshape(-1, D)  # (N*L, D)
     scaler = MinMaxScaler(feature_range=(-1.0, 1.0))
     scaler.fit(flat)
@@ -325,8 +325,7 @@ def main():
         test_countries=args.test_countries
     )
 
-    # Compact human-readable summary
-    print("=== Window Prep Summary ===")
+    print("Window Prep Summary")
     print("Countries:")
     for split in ["train", "val", "test"]:
         print(f"  {split:>5}: {summary['countries'][split]}")
