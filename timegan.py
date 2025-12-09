@@ -55,10 +55,10 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         """
 
         with tf.compat.v1.variable_scope("embedder", reuse=tf.compat.v1.AUTO_REUSE):
-            # 1) Temporal encoder: stacked RNN over timesteps
+            # Temporal encoder: stacked RNN over timesteps
             outputs = stacked_rnn(X, hidden_dim, num_layers, module, scope="embedder_rnn")
 
-            # 2) Per-timestep projection to latent space
+            # Per-timestep projection to latent space
             # Flatten time+batch for one dense matrix multiplication (matmul) then reshape back
             flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
 
@@ -79,10 +79,10 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         Returns X_hat: reconstructed sequences from H (batch, L, feature_dim)
         """
         with tf.compat.v1.variable_scope("recovery", reuse=tf.compat.v1.AUTO_REUSE):
-            # 1) Stacked RNN over timesteps
+            # Stacked RNN over timesteps
             outputs = stacked_rnn(H, hidden_dim, num_layers, module, scope="recovery_rnn")
 
-            # 2) Per-timestep projection to original feature space
+            # Per-timestep projection to original feature space
             flat = tf.reshape(outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
 
             # Dense projection (hidden_dim -> feature_dim) with Xavier init
@@ -103,10 +103,10 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         Returns H_tilde: generated latent sequences (batch, L, hidden_dim)
         """
         with tf.compat.v1.variable_scope("generator", reuse=tf.compat.v1.AUTO_REUSE):
-            # 1) Stacked RNN over timesteps
+            # Stacked RNN over timesteps
             g_outputs = stacked_rnn(Z, hidden_dim, num_layers, module, scope="generator_rnn")
 
-            # 2) Per-timestep projection to latent space
+            # Per-timestep projection to latent space
             g_flat = tf.reshape(g_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
 
             # Dense projection (hidden_dim -> hidden_dim) with Xavier init
@@ -128,10 +128,10 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
         """
 
         with tf.compat.v1.variable_scope("supervisor", reuse=tf.compat.v1.AUTO_REUSE):
-            # 1) Stacked RNN over timesteps
+            # Stacked RNN over timesteps
             s_outputs = stacked_rnn(H, hidden_dim, num_layers, module, scope="supervisor_rnn")
 
-            # 2) Per-timestep projection to latent space
+            # Per-timestep projection to latent space
             s_flat = tf.reshape(s_outputs, [-1, hidden_dim])  # (batch*seq_len, hidden_dim)
 
             W_s = tf.Variable(xavier_init([hidden_dim, hidden_dim]), name="W_s")
@@ -152,13 +152,13 @@ def timegan(train_set: List[np.ndarray], parameters: Dict):
             noise_std = 0.02 # Standard deviation of Gaussian noise
             H_noisy = H_in + tf.random.normal(tf.shape(H_in), stddev=noise_std)
 
-            # 1) Stacked RNN over timesteps
+            # Stacked RNN over timesteps
             d_outputs = stacked_rnn(H_noisy, hidden_dim, num_layers, module, scope="discriminator_rnn")
 
-            # 2) Sequence summary: take last timestep's hidden state
+            # Sequence summary: take last timestep's hidden state
             last = d_outputs[:, -1, :]  # (batch, hidden_dim)
 
-            # 3) Linear head to single logit (used for stability instead of sigmoid)
+            # Linear head to single logit (used for stability instead of sigmoid)
             W_d = tf.Variable(xavier_init([hidden_dim, 1]), name="W_d")
             b_d = tf.Variable(tf.zeros([1], dtype=tf.float32), name="b_d")
 
