@@ -58,7 +58,7 @@ def plot_scatter_cloud(
     x_synth = synth_flat[:, feature_x]
     y_synth = synth_flat[:, feature_y]
 
-    # Clip values depending on which features are plotted
+    # Clip extreme values for better visualization
     
     if feature_y:
         y_train = np.clip(y_train, -2, 6)
@@ -68,7 +68,6 @@ def plot_scatter_cloud(
         x_train = np.clip(x_train, 3, 10)
         x_synth = np.clip(x_synth, 3, 10)
 
-    # Start a new figure
     plt.figure(figsize=(6, 6))
 
     # Plot training cloud: very light, many small points
@@ -76,7 +75,7 @@ def plot_scatter_cloud(
         x_train,
         y_train,
         s=5,
-        alpha=0.05,          # very transparent
+        alpha=0.05,          
         color="tab:blue",
         edgecolors="none",
         label="Real (train)",
@@ -93,7 +92,7 @@ def plot_scatter_cloud(
         label="Synthetic",
     )
 
-    # Labels – you can adjust to match your feature ordering
+    # Labels
     feature_names = ["Inflation", "Unemployment", "GDP Growth", "Population Growth"]
     def fname(idx):
         if 0 <= idx < len(feature_names):
@@ -205,7 +204,7 @@ def load_data(base_dir: Path):
         raise FileNotFoundError(f"Missing synthetic data: {synth_path}")
 
     train = np.load(train_path)  # (N, L, D)
-    synth = np.load(synth_path)  # (N, L, D)
+    synth = np.load(synth_path)  
 
     if train.ndim != 3 or synth.ndim != 3:
         raise ValueError(
@@ -226,11 +225,9 @@ def main():
         print(f"Error: {base_dir} does not exist.")
         sys.exit(1)
 
-    # We'll fill these in next:
     train, synth = load_data(base_dir)
     plot_scatter_cloud(train, synth, version, base_dir)
 
-    # Feature indices (adjust if needed)
     # Assuming feature order: [Inflation, Unemployment, GDP Growth, Population Growth]
     GDP_IDX = 2
     UNEMP_IDX = 1
