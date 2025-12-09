@@ -110,7 +110,7 @@ def stacked_rnn(x, hidden_dim: int, num_layers: int, module: str, scope: str = "
 
 
 """
-Xavier (also called Glorot) initialization
+Xavier initialization
 Creates a random weight matrix with values drawn from a normal distribution
 Weights go into neural network layers, adapted during training by adam optimizer
 - Helps keep the scale of the gradients roughly the same in all layers
