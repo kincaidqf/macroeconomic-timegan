@@ -46,7 +46,7 @@ def main(version, overrides=None):
     D = summary["shapes"]["feature_count"]
     z_dim = int(params.get("z_dim", D))  # you can set z_dim in params, else default to D
 
-    # 2) Build graph
+    # Build graph
     handles = timegan(
         train_scaled, 
         parameters=params
@@ -310,27 +310,27 @@ if __name__ == "__main__":
     args = parse_args()
     version = args.version
 
-    if version == 0:
+    if version == "0":
         overrides = {
             "gamma": 1.0,
             "iterations": 3000,
             "batch_size": 64,
         }
-    elif version == 1:
+    elif version == "1":
         # reducing iterations to reduce overfitting observed in v0
         overrides = {
             "gamma": 1,
             "iterations": 2000,
             "batch_size": 64,
         }
-    elif version == 2:
+    elif version == "2":
         # increase gamma to further reduce overfitting
         overrides = {
             "gamma": 5.0,
             "iterations": 2000,
             "batch_size": 64,
         }
-    elif version == 3:
+    elif version == "3":
         # increase AE warmup iterations
         overrides = {
             "gamma": 5.0,
@@ -338,7 +338,7 @@ if __name__ == "__main__":
             "batch_size": 64,
             "ae_warmup_it": 1000,
         }
-    elif version == 4:
+    elif version == "4":
         # decrease learning rate
         overrides = {
             "gamma": 5.0,
@@ -347,7 +347,7 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
-    elif version == 5:
+    elif version == "5":
         # decrease batch size
         overrides = {
             "gamma": 5.0,
@@ -356,7 +356,7 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
-    elif version == 6:
+    elif version == "6":
         # parameters the same as v4, but added label smoothing to discriminator in timegan.py
         overrides = {
             "gamma": 5.0,
@@ -365,7 +365,7 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
-    elif version == 7:
+    elif version == "7":
         # parameters the same as v4, but added noise to discriminator (0.05) in timegan.py
         overrides = {
             "gamma": 5.0,
@@ -374,7 +374,7 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
-    elif version == 8:
+    elif version == "8":
         # parameters the same as v4, but added noise to discriminator (changed noise to 0.02) in timegan.py
         overrides = {
             "gamma": 5.0,
@@ -383,7 +383,7 @@ if __name__ == "__main__":
             "ae_warmup_it": 1000,
             "learning_rate": 1e-4
         }
-    elif version == 9:
+    elif version == "9":
         # trying lstm instead of gru rnn cells
         overrides = {
             "gamma": 5.0,
@@ -393,7 +393,7 @@ if __name__ == "__main__":
             "learning_rate": 1e-4,
             "module": "lstm"
         }
-    elif version == 10:
+    elif version == "10":
         # ae_loss halved in timegan.py
         overrides = {
             "gamma": 5.0,
@@ -403,7 +403,7 @@ if __name__ == "__main__":
             "learning_rate": 1e-4,
             "module": "lstm"
         }
-    elif version == 11:
+    elif version == "11":
         # changed noise structure fed into discriminator in timegan.py, changes removed, version not kept
         overrides = {
             "gamma": 5.0,
@@ -413,7 +413,7 @@ if __name__ == "__main__":
             "learning_rate": 1e-4,
             "module": "lstm"
         }
-    elif version == 12:
+    elif version == "12":
         # changed discriminator noise std from 0.02 to 0.04 in timegan.py, change removed, version not kept
         overrides = {
             "gamma": 5.0,
@@ -423,7 +423,7 @@ if __name__ == "__main__":
             "learning_rate": 1e-4,
             "module": "lstm"
         }
-    elif version == 13:
+    elif version == "13":
         # changed z_dim to 16 from 4 in main.py
         overrides = {
             "gamma": 5.0,
@@ -434,20 +434,8 @@ if __name__ == "__main__":
             "module": "lstm",
             "z_dim": 16
         }
-    elif version == 14:
+    elif version == "14":
         # increased number of hidden dimensions to 32 from 24
-        overrides = {
-            "gamma": 5.0,
-            "iterations": 2000,
-            "batch_size": 64,
-            "ae_warmup_it": 1000,
-            "learning_rate": 1e-4,
-            "module": "lstm",
-            "z_dim": 16,
-            "hidden_dim": 32
-        }
-    elif version == 15:
-        # changed discriminator noise to 0.05 in timegan.py
         overrides = {
             "gamma": 5.0,
             "iterations": 2000,
@@ -470,4 +458,5 @@ if __name__ == "__main__":
             "z_dim": 16,
             "hidden_dim": 32
         }
+    print("Overrides:", overrides)
     main(version, overrides=overrides)
