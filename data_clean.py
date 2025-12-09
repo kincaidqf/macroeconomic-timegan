@@ -22,18 +22,18 @@ def clean_datag2(
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
-    # 1) Load raw - treat dot placeholders as NaN, keep numbers as numeric
+    # Load raw - treat dot placeholders as NaN, keep numbers as numeric
     df = pd.read_csv(
         input_path,
         na_values=["..", "...", "."],
         keep_default_na=True,
     )
 
-    # 2) Drop 'Series Code' if present
+    # Drop 'Series Code' if present
     if "Series Code" in df.columns:
         df = df.drop(columns=["Series Code"])
 
-    # 3) Normalize year columns: "1970 [YR1970]" -> "1970"
+    # Normalize year columns: "1970 [YR1970]" -> "1970"
     year_cols = [c for c in df.columns if "[YR" in c or c.strip().isdigit()]
     fixed_cols = []
     for c in year_cols:
@@ -43,7 +43,7 @@ def clean_datag2(
     rename_map = {old: new for old, new in zip(year_cols, fixed_cols)}
     df = df.rename(columns=rename_map)
 
-    # 4) Filter to the 5 desired series (update keys to match your file)
+    # Filter to the 5 desired series (update keys to match your file)
     desired_series = {
         "GDP per capita growth (annual %)": "GDP per capita growth",
         "General government final consumption expenditure (% of GDP)": "Govt consumption",
@@ -58,7 +58,7 @@ def clean_datag2(
     df = df[df["Series Name"].isin(desired_series.keys())].copy()
     df["Feature"] = df["Series Name"].map(desired_series)
 
-    # 5) Melt to long: (Country, Feature, Year, Value)
+    # Melt to long: (Country, Feature, Year, Value)
     id_vars = ["Country Name", "Country Code", "Feature"]
     value_vars = [c for c in df.columns if c not in id_vars + ["Series Name"]]
 
@@ -74,8 +74,7 @@ def clean_datag2(
     long_df["Value"] = pd.to_numeric(long_df["Value"], errors="coerce")
     long_df = long_df.dropna(subset=["Year"])  # drop invalid years
 
-    # 6) Pivot to wide: one row per (Country Name, Country Code, Year)
-    #    Use pivot (no aggregation) instead of pivot_table(mean)
+    # Pivot to wide: one row per (Country Name, Country Code, Year)
     wide_df = long_df.pivot(
         index=["Country Name", "Country Code", "Year"],
         columns="Feature",
@@ -97,7 +96,7 @@ def clean_datag2(
         if col in wide_df.columns:
             wide_df[col] = pd.to_numeric(wide_df[col], errors="coerce")
 
-    # 7) Drop countries with no data at all (all-NaN across feature_cols)
+    # Drop countries with no data at all (all-NaN across feature_cols)
     country_groups = wide_df.groupby("Country Name")
 
     country_idx = 0
