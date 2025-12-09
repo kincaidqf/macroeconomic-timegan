@@ -9,5 +9,9 @@
   "learning_rate": 0.0001,
   "module": "lstm",
   "hidden_dim": 32,
-  "num_layers": 2
+  "num_layers": 2,
+  "ae_loss": 0.0051,
+  "d_loss": 0.0015,
+  "g_loss": 0.0019,
+  "sup_loss": 0.0003
 }
